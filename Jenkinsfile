@@ -57,20 +57,20 @@ pipeline {
           def changedFilesOutput = sh(script: diffCmd, returnStdout: true).trim()
           def changedFiles = changedFilesOutput ? changedFilesOutput.split('\n') : []
 
-          def selected = [] as Set
           if (params.FORCE_ALL_SERVICES) {
-            selected.addAll(services)
-            echo 'FORCE_ALL_SERVICES=true: building all services.'
+            env.CHANGED_SERVICES = services.join(',')
+            echo "FORCE_ALL_SERVICES=true: building all services (${services.size()})."
           } else {
+            def selected = [] as Set
             changedFiles.each { filePath ->
               def topDir = filePath.tokenize('/')[0]
               if (services.contains(topDir)) {
                 selected.add(topDir)
               }
             }
+            env.CHANGED_SERVICES = selected.join(',')
           }
 
-          env.CHANGED_SERVICES = selected.join(',')
           if (env.CHANGED_SERVICES) {
             echo "Services to build: ${env.CHANGED_SERVICES}"
           } else {
