@@ -72,7 +72,7 @@ pipeline {
                 selected.add(topDir)
               }
             }
-            env.CHANGED_SERVICES = selected.join(',')
+            env.CHANGED_SERVICES = selected ? selected.join(',') : ''
           }
 
           echo "DEBUG CHANGED_SERVICES='${env.CHANGED_SERVICES}'"
@@ -88,7 +88,7 @@ pipeline {
 
     stage('Build & Push Images') {
       when {
-        expression { return env.CHANGED_SERVICES?.trim() != '' }
+        expression { return (env.CHANGED_SERVICES ?: '').trim() }
       }
       steps {
         withCredentials([
@@ -101,7 +101,7 @@ pipeline {
           script {
             def commitSha = sh(script: 'git rev-parse --short=12 HEAD', returnStdout: true).trim()
             def isMain = (env.BRANCH_NAME == 'main')
-            def services = env.CHANGED_SERVICES.split(',') as List
+            def services = (env.CHANGED_SERVICES ?: '').split(',').findAll { it } as List
 
             services.each { serviceName ->
               def imageBase = "${env.REGISTRY}/${env.DOCKERHUB_NAMESPACE}/${env.IMAGE_PREFIX}-${serviceName}"
