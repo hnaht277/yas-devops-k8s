@@ -35,6 +35,14 @@ minikube addons enable ingress
 ```shell
 ./setup-redis.sh
 ```
+- Execute [setup-jenkins.sh](setup-jenkins.sh) to set up Jenkins on Minikube.
+```shell
+./setup-jenkins.sh
+```
+- Execute [reset-jenkins.sh](reset-jenkins.sh) to uninstall Jenkins bootstrap when needed.
+```shell
+./reset-jenkins.sh
+```
 - Execute [setup-cluster.sh](setup-cluster.sh) to set up severs: `postgresql`, `elasticsearch`, `kafka`, `debezium connect`
 ```shell
 ./setup-cluster.sh
@@ -71,6 +79,17 @@ kubectl get secret keycloak-credentials -n keycloak -o jsonpath="{.data.password
 bootstrap admin is a temporary admin user. To harden security, create a permanent admin account and delete the temporary one.
 ## Cluster configuration
 All configuration of cluster is setting on [cluster-config.yaml](cluster-config.yaml) in folder k8s-deploy
+
+## Jenkins bootstrap configuration
+Jenkins bootstrap supports two modes configured in `cluster-config.yaml`:
+
+- `local`: expose Jenkins by NodePort and access it from local machine.
+- `shared`: expose Jenkins by Ingress to support a shared Minikube host for the team.
+
+Jenkins bootstrap assets are stored at [jenkins](./jenkins/README.md).
+JCasC source is defined in [jcasc.yaml](./jenkins/jcasc.yaml) and rendered by setup script during install.
+GitHub and registry credentials are managed in Jenkins UI (credential IDs are documented in jenkins/README.md), not stored in cluster-config.yaml.
+Default Kubernetes agent image for Jenkins is configured in values files and built from [agent-image](./jenkins/agent-image/README.md).
 
 ## Yas configuration 
 All configurations of YAS application putted in the yas-configuration helm chart.

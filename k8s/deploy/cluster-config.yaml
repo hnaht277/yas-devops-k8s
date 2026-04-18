@@ -22,3 +22,18 @@ grafana:
   password: admin
 redis:
   password: redis
+jenkins:
+  mode: local
+  namespace: cicd
+  releaseName: jenkins
+  localUrl: http://jenkins.local
+  sharedUrl: https://jenkins.yas.local.com
+  admin:
+    username: admin
+    password: admin123
+  github:
+    repoUrl: https://github.com/hnaht277/yas-devops-k8s.git
+  # Credentials are managed in Jenkins UI after bootstrap.
+  # Required credential IDs:
+  # - github-credentials
+  # - docker-registry-creds
