@@ -55,6 +55,6 @@ jenkins:
 
               - name: "kaniko"
                 image: "gcr.io/kaniko-project/executor:v1.23.2-debug"
-                command: "/busybox/sh"
-                args: "cat"
+                command: "/busybox/sleep"
+                args: "99d"
                 ttyEnabled: true
