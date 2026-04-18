@@ -58,7 +58,11 @@ pipeline {
           def changedFiles = changedFilesOutput ? changedFilesOutput.split('\n') : []
 
           if (params.FORCE_ALL_SERVICES) {
-            env.CHANGED_SERVICES = services.join(',')
+            env.CHANGED_SERVICES = services
+              .collect { it.trim() }
+              .findAll { it }
+              .join(',')
+
             echo "FORCE_ALL_SERVICES=true: building all services (${services.size()})."
           } else {
             def selected = [] as Set
@@ -71,7 +75,9 @@ pipeline {
             env.CHANGED_SERVICES = selected.join(',')
           }
 
-          if (env.CHANGED_SERVICES) {
+          echo "DEBUG CHANGED_SERVICES='${env.CHANGED_SERVICES}'"
+
+          if (env.CHANGED_SERVICES?.trim()) {
             echo "Services to build: ${env.CHANGED_SERVICES}"
           } else {
             echo 'No service changes detected. CI image build will be skipped.'
@@ -82,7 +88,7 @@ pipeline {
 
     stage('Build & Push Images') {
       when {
-        expression { return env.CHANGED_SERVICES?.trim() }
+        expression { return env.CHANGED_SERVICES?.trim() != '' }
       }
       steps {
         withCredentials([
