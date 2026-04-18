@@ -33,7 +33,7 @@ pipeline {
       steps {
         script {
           def serviceListOutput = sh(
-            script: 'find . -maxdepth 2 -name Dockerfile | sed -E "s#^\\./([^/]+)/Dockerfile$#\\1#" | sort -u',
+            script: "find . -maxdepth 2 -name Dockerfile -printf '%h\\n' | sed 's#^\\./##' | sort -u",
             returnStdout: true
           ).trim()
 
