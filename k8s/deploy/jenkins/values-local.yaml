@@ -17,6 +17,7 @@ controller:
     - job-dsl
     - docker-workflow
     - blueocean
+    - timestamper
   resources:
     requests:
       cpu: "500m"
