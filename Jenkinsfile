@@ -57,8 +57,10 @@ pipeline {
           def changedFilesOutput = sh(script: diffCmd, returnStdout: true).trim()
           def changedFiles = changedFilesOutput ? changedFilesOutput.split('\n') : []
 
+          def changedServicesStr = ''
+
           if (params.FORCE_ALL_SERVICES) {
-            env.CHANGED_SERVICES = services
+            changedServicesStr = services
               .collect { it.trim() }
               .findAll { it }
               .join(',')
@@ -72,8 +74,11 @@ pipeline {
                 selected.add(topDir)
               }
             }
-            env.CHANGED_SERVICES = selected ? selected.join(',') : ''
+            changedServicesStr = selected ? selected.join(',') : ''
           }
+
+          // assign 1 lần duy nhất
+          env.CHANGED_SERVICES = changedServicesStr
 
           echo "DEBUG CHANGED_SERVICES='${env.CHANGED_SERVICES}'"
 
@@ -88,7 +93,7 @@ pipeline {
 
     stage('Build & Push Images') {
       when {
-        expression { return (env.CHANGED_SERVICES ?: '').trim() }
+        expression { return (env.CHANGED_SERVICES ?: '').trim() != '' }
       }
       steps {
         withCredentials([
