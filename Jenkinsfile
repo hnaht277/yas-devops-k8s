@@ -69,6 +69,8 @@ pipeline {
             echo "FORCE_ALL_SERVICES=true: building all services (${services})."
           } else {
             def selected = [] as Set
+            def commonLibraryChanged = changedFiles.any { it == 'common-library' || it.startsWith('common-library/') }
+
             changedFiles.each { filePath ->
               echo "DEBUG changed file path: ${filePath}"
               def topDir = filePath.tokenize('/')[0]
@@ -77,6 +79,19 @@ pipeline {
                 selected.add(topDir)
               }
             }
+
+            if (commonLibraryChanged) {
+              echo 'Detected changes in common-library. Resolving dependent services only...'
+              services.each { serviceName ->
+                if (fileExists("${serviceName}/pom.xml")) {
+                  def pomContent = readFile("${serviceName}/pom.xml")
+                  if (pomContent.contains('<artifactId>common-library</artifactId>')) {
+                    selected.add(serviceName)
+                  }
+                }
+              }
+            }
+
             changedServicesStr = selected ? selected.join(',') : ''
           }
 
@@ -92,6 +107,36 @@ pipeline {
             echo "Services to build: ${env.CHANGED_SERVICES}"
           } else {
             echo 'No service changes detected. CI image build will be skipped.'
+          }
+        }
+      }
+    }
+
+    stage('Build Java Services') {
+      when {
+        expression { return (env.CHANGED_SERVICES ?: '').trim() != '' }
+      }
+      steps {
+        script {
+          def services = (env.CHANGED_SERVICES ?: '').split(',').findAll { it } as List
+          def javaServices = [] as List
+          sh 'chmod +x ./mvnw'
+
+          services.each { serviceName ->
+            def serviceDir = "${WORKSPACE}/${serviceName}"
+            if (fileExists("${serviceDir}/pom.xml")) {
+              javaServices.add(serviceName)
+            } else {
+              echo "Skipping ${serviceName}: not a Java service (no pom.xml)"
+            }
+          }
+
+          if (javaServices) {
+            def serviceList = javaServices.join(',')
+            echo "Building Java modules in one reactor run: ${serviceList}"
+            sh "./mvnw -pl ${serviceList} -am clean package -DskipTests"
+          } else {
+            echo 'No Java services to build.'
           }
         }
       }
@@ -117,6 +162,20 @@ pipeline {
             services.each { serviceName ->
               def imageBase = "${env.REGISTRY}/${env.DOCKERHUB_NAMESPACE}/${env.IMAGE_PREFIX}-${serviceName}"
               echo "Building image for ${serviceName}: ${imageBase}:${commitSha}"
+
+              sh """#!/bin/sh
+set -eu
+if [ -f "${serviceName}/pom.xml" ]; then
+  echo "[JAR-CHECK] Checking ${serviceName}"
+  ls -la "${serviceName}/target" || true
+  if ls "${serviceName}/target"/*.jar >/dev/null 2>&1; then
+    echo "[JAR-CHECK] OK: jar exists for ${serviceName}"
+  else
+    echo "[JAR-CHECK] ERROR: jar not found for ${serviceName}"
+    exit 1
+  fi
+fi
+"""
 
               container('kaniko') {
                 sh """#!/busybox/sh
