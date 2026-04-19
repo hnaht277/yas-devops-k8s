@@ -125,8 +125,22 @@ cd "${WORKSPACE}"
 mkdir -p /kaniko/.docker
 AUTH_B64=\$(printf '%s:%s' "\$DOCKERHUB_USER" "\$DOCKERHUB_PASS" | base64 | tr -d '\\n')
 cat > /kaniko/.docker/config.json <<EOF
-{"auths":{"docker.io":{"auth":"\$AUTH_B64"}}}
+{
+  "auths": {
+    "https://index.docker.io/v1/": {
+      "auth": "\$AUTH_B64"
+    }
+  }
+}
 EOF
+
+echo "===== DOCKER CONFIG ====="
+cat /kaniko/.docker/config.json
+echo "========================="
+
+echo "DEBUG DOCKER USER: \$DOCKERHUB_USER"
+echo "DEBUG AUTH_B64 length: \$(echo -n "\$AUTH_B64" | wc -c)"
+echo "DEBUG IMAGE: ${imageBase}:${commitSha}"
 
 DEST_ARGS="--destination=${imageBase}:${commitSha}"
 if [ "${isMain}" = "true" ]; then
