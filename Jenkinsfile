@@ -19,7 +19,6 @@ pipeline {
     REGISTRY = 'docker.io'
     DOCKERHUB_NAMESPACE = 'hnaht277'
     IMAGE_PREFIX = 'yas'
-    CHANGED_SERVICES = ''
   }
 
   stages {
