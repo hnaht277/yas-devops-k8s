@@ -41,6 +41,8 @@ pipeline {
             error('No services with Dockerfile were found at repository root level.')
           }
 
+          echo "DEBUG raw serviceListOutput: '${serviceListOutput}'"
+
           def services = serviceListOutput.split('\n') as List
           echo "Detected services: ${services.join(', ')}"
 
@@ -65,17 +67,22 @@ pipeline {
               .findAll { it }
               .join(',')
 
-            echo "FORCE_ALL_SERVICES=true: building all services (${services.size()})."
+            echo "FORCE_ALL_SERVICES=true: building all services (${services})."
           } else {
             def selected = [] as Set
             changedFiles.each { filePath ->
+              echo "DEBUG changed file path: ${filePath}"
               def topDir = filePath.tokenize('/')[0]
+              echo "DEBUG topDir: ${topDir}"
               if (services.contains(topDir)) {
                 selected.add(topDir)
               }
             }
             changedServicesStr = selected ? selected.join(',') : ''
           }
+
+          echo "DEBUG changedServicesStr raw: ${changedServicesStr}"
+          echo "DEBUG changedServicesStr class: ${changedServicesStr?.getClass()}"  
 
           // assign 1 lần duy nhất
           env.CHANGED_SERVICES = changedServicesStr
