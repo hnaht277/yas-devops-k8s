@@ -172,20 +172,21 @@ fi
               def imageBase = "${env.REGISTRY}/${env.DOCKERHUB_NAMESPACE}/${env.IMAGE_PREFIX}-${serviceName}"
               echo "Building image for ${serviceName}: ${imageBase}:${commitSha}"
 
-              sh """#!/bin/sh
+              sh '''#!/bin/sh
 set -eu
+
 if [ -f "${serviceName}/pom.xml" ]; then
   echo "[JAR-CHECK] Checking ${serviceName}"
   ls -la "${serviceName}/target" || true
-  if ls "${serviceName}/target"/*.jar 2>/dev/null | grep -v '\\-tests\\.jar$' >/dev/null 2>&1; then
+
+  if ls "${serviceName}/target"/*.jar 2>/dev/null | grep -v '-tests\.jar$' >/dev/null 2>&1; then
     echo "[JAR-CHECK] OK: jar exists for ${serviceName}"
   else
     echo "[JAR-CHECK] ERROR: jar not found for ${serviceName}"
     exit 1
   fi
 fi
-"""
-
+'''
               container('kaniko') {
                 sh """#!/busybox/sh
 set -eu
