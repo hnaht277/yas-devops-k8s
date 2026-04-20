@@ -221,6 +221,7 @@ fi
   --snapshot-mode=redo \
   --cleanup \
   --use-new-run \
+  --ignore-path node_modules/.bin \
   \$DEST_ARGS
 """
               }
