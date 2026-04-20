@@ -218,6 +218,9 @@ fi
 /kaniko/executor \
   --context "\${PWD}/${serviceName}" \
   --dockerfile "\${PWD}/${serviceName}/Dockerfile" \
+  --snapshot-mode=redo \
+  --cleanup \
+  --use-new-run \
   \$DEST_ARGS
 """
               }
