@@ -215,6 +215,9 @@ if [ "${isMain}" = "true" ]; then
   DEST_ARGS="\$DEST_ARGS --destination=${imageBase}:main"
 fi
 
+echo "Cleaning Kaniko workspace before building ${serviceName}..."
+rm -rf /kaniko/* || true
+
 /kaniko/executor \
   --context "\${PWD}/${serviceName}" \
   --dockerfile "\${PWD}/${serviceName}/Dockerfile" \
