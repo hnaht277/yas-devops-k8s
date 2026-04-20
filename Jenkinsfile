@@ -216,7 +216,8 @@ if [ "${isMain}" = "true" ]; then
 fi
 
 echo "Cleaning Kaniko workspace before building ${serviceName}..."
-rm -rf /kaniko/* || true
+rm -rf /kaniko/cache || true
+rm -rf /kaniko/0 || true
 
 /kaniko/executor \
   --context "\${PWD}/${serviceName}" \
