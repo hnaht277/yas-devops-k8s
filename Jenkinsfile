@@ -177,7 +177,7 @@ set -eu
 if [ -f "${serviceName}/pom.xml" ]; then
   echo "[JAR-CHECK] Checking ${serviceName}"
   ls -la "${serviceName}/target" || true
-  if ls "${serviceName}/target"/*.jar 2>/dev/null | grep -v '\-tests\.jar$' >/dev/null 2>&1; then
+  if ls "${serviceName}/target"/*.jar 2>/dev/null | grep -v '\\-tests\\.jar$' >/dev/null 2>&1; then
     echo "[JAR-CHECK] OK: jar exists for ${serviceName}"
   else
     echo "[JAR-CHECK] ERROR: jar not found for ${serviceName}"
