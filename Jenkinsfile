@@ -224,7 +224,7 @@ fi
   --single-snapshot \
   --ignore-path node_modules/.bin \
   --ignore-path /app/node_modules/.bin \
-  --ignore-path /kaniko/0/app/node_modules/.bin \   # Kaniko internal path
+  --ignore-path /kaniko/0/app/node_modules/.bin \
   \$DEST_ARGS
 """
               }
