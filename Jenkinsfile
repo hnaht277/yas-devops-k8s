@@ -135,6 +135,15 @@ pipeline {
             def serviceList = javaServices.join(',')
             echo "Building Java modules in one reactor run: ${serviceList}"
             sh "./mvnw -pl ${serviceList} -am clean package -DskipTests"
+
+            javaServices.each { serviceName ->
+              sh """#!/bin/sh
+set -eu
+if [ -d "${serviceName}/target" ]; then
+  find "${serviceName}/target" -maxdepth 1 -type f -name '*-tests.jar' -delete
+fi
+"""
+            }
           } else {
             echo 'No Java services to build.'
           }
@@ -168,7 +177,7 @@ set -eu
 if [ -f "${serviceName}/pom.xml" ]; then
   echo "[JAR-CHECK] Checking ${serviceName}"
   ls -la "${serviceName}/target" || true
-  if ls "${serviceName}/target"/*.jar >/dev/null 2>&1; then
+  if ls "${serviceName}/target"/*.jar 2>/dev/null | grep -v '\-tests\.jar$' >/dev/null 2>&1; then
     echo "[JAR-CHECK] OK: jar exists for ${serviceName}"
   else
     echo "[JAR-CHECK] ERROR: jar not found for ${serviceName}"
