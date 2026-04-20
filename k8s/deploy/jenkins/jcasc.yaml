@@ -27,7 +27,7 @@ jenkins:
 
             containers:
               - name: "jnlp"
-                image: "docker.io/hnaht277/jenkins-agent-k8s:0.1"
+                image: "docker.io/hnaht277/jenkins-agent-k8s:0.2"
                 alwaysPullImage: true
                 workingDir: "/home/jenkins/agent"
                 resourceRequestCpu: "100m"
@@ -49,7 +49,7 @@ jenkins:
 
             containers:
               - name: "jnlp"
-                image: "docker.io/hnaht277/jenkins-agent-k8s:0.1"
+                image: "docker.io/hnaht277/jenkins-agent-k8s:0.2"
                 alwaysPullImage: true
                 workingDir: "/home/jenkins/agent"
 
