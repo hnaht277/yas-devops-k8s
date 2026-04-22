@@ -100,7 +100,6 @@ if [[ "${DEPLOY_YAS_CONFIGURATION}" == "true" ]]; then
   helm dependency build "${CHARTS_DIR}/yas-configuration" >/dev/null
   helm upgrade --install yas-configuration "${CHARTS_DIR}/yas-configuration" \
     --namespace "${DEPLOY_NAMESPACE}" \
-    --create-namespace \
     --wait \
     --timeout 5m
 fi
@@ -145,7 +144,6 @@ for ((index=0; index<service_count; index++)); do
   helm dependency build "${chart_path}" >/dev/null
   helm upgrade --install "${release_name}" "${chart_path}" \
     --namespace "${DEPLOY_NAMESPACE}" \
-    --create-namespace \
     --set-string "${values_key}.image.repository=${image_repository}" \
     --set-string "${values_key}.image.tag=${image_tag}" \
     --set "${values_key}.service.type=NodePort" \

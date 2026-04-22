@@ -11,7 +11,7 @@ metadata:
   namespace: yas-dev
 rules:
   - apiGroups: [""]
-    resources: ["pods", "services", "configmaps", "secrets", "events"]
+    resources: ["pods", "services", "configmaps", "secrets", "events", "serviceaccounts"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
   - apiGroups: ["apps"]
     resources: ["deployments", "replicasets", "statefulsets"]
