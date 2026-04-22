@@ -100,6 +100,7 @@ if [[ "${DEPLOY_YAS_CONFIGURATION}" == "true" ]]; then
   helm dependency build "${CHARTS_DIR}/yas-configuration" >/dev/null
   helm upgrade --install yas-configuration "${CHARTS_DIR}/yas-configuration" \
     --namespace "${DEPLOY_NAMESPACE}" \
+    --set reloader.enabled=false \
     --wait \
     --timeout 5m
 fi
