@@ -33,6 +33,7 @@ jenkins:
     password: admin123
   github:
     repoUrl: https://github.com/hnaht277/yas-devops-k8s.git
+    repoBranch: main
   # Credentials are managed in Jenkins UI after bootstrap.
   # Required credential IDs:
   # - github-credentials

@@ -1,0 +1,150 @@
+deployment:
+  namespace: yas-dev
+  domain: yas.local.com
+
+image:
+  registry: docker.io
+  namespace: hnaht277
+  prefix: yas
+  mainTag: main
+
+services:
+  - name: backoffice
+    chart: backoffice-ui
+    release: backoffice-ui
+    valuesKey: ui
+    branchParam: BACKOFFICE_BRANCH
+    defaultBranch: main
+
+  - name: backoffice-bff
+    chart: backoffice-bff
+    release: backoffice-bff
+    valuesKey: backend
+    branchParam: BACKOFFICE_BFF_BRANCH
+    defaultBranch: main
+
+  - name: cart
+    chart: cart
+    release: cart
+    valuesKey: backend
+    branchParam: CART_BRANCH
+    defaultBranch: main
+
+  - name: customer
+    chart: customer
+    release: customer
+    valuesKey: backend
+    branchParam: CUSTOMER_BRANCH
+    defaultBranch: main
+
+  - name: inventory
+    chart: inventory
+    release: inventory
+    valuesKey: backend
+    branchParam: INVENTORY_BRANCH
+    defaultBranch: main
+
+  - name: location
+    chart: location
+    release: location
+    valuesKey: backend
+    branchParam: LOCATION_BRANCH
+    defaultBranch: main
+
+  - name: media
+    chart: media
+    release: media
+    valuesKey: backend
+    branchParam: MEDIA_BRANCH
+    defaultBranch: main
+
+  - name: order
+    chart: order
+    release: order
+    valuesKey: backend
+    branchParam: ORDER_BRANCH
+    defaultBranch: main
+
+  - name: payment
+    chart: payment
+    release: payment
+    valuesKey: backend
+    branchParam: PAYMENT_BRANCH
+    defaultBranch: main
+
+  - name: payment-paypal
+    chart: payment-paypal
+    release: payment-paypal
+    valuesKey: backend
+    branchParam: PAYMENT_PAYPAL_BRANCH
+    defaultBranch: main
+
+  - name: product
+    chart: product
+    release: product
+    valuesKey: backend
+    branchParam: PRODUCT_BRANCH
+    defaultBranch: main
+
+  - name: promotion
+    chart: promotion
+    release: promotion
+    valuesKey: backend
+    branchParam: PROMOTION_BRANCH
+    defaultBranch: main
+
+  - name: rating
+    chart: rating
+    release: rating
+    valuesKey: backend
+    branchParam: RATING_BRANCH
+    defaultBranch: main
+
+  - name: recommendation
+    chart: recommendation
+    release: recommendation
+    valuesKey: backend
+    branchParam: RECOMMENDATION_BRANCH
+    defaultBranch: main
+
+  - name: sampledata
+    chart: sampledata
+    release: sampledata
+    valuesKey: backend
+    branchParam: SAMPLEDATA_BRANCH
+    defaultBranch: main
+
+  - name: search
+    chart: search
+    release: search
+    valuesKey: backend
+    branchParam: SEARCH_BRANCH
+    defaultBranch: main
+
+  - name: storefront
+    chart: storefront-ui
+    release: storefront-ui
+    valuesKey: ui
+    branchParam: STOREFRONT_BRANCH
+    defaultBranch: main
+
+  - name: storefront-bff
+    chart: storefront-bff
+    release: storefront-bff
+    valuesKey: backend
+    branchParam: STOREFRONT_BFF_BRANCH
+    defaultBranch: main
+
+  - name: tax
+    chart: tax
+    release: tax
+    valuesKey: backend
+    branchParam: TAX_BRANCH
+    defaultBranch: main
+
+  - name: webhook
+    chart: webhook
+    release: webhook
+    valuesKey: backend
+    branchParam: WEBHOOK_BRANCH
+    defaultBranch: main
