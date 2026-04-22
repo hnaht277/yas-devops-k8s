@@ -58,3 +58,44 @@ jenkins:
                 command: "/busybox/sleep"
                 args: "99d"
                 ttyEnabled: true
+
+jobs:
+  - script: |
+      pipelineJob('developer_build') {
+        description('Deploy YAS services for developer testing with per-service branch parameters.')
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote {
+                  url('${GITHUB_REPO_URL}')
+                  credentials('github-credentials')
+                }
+                branch('*/${GITHUB_REPO_BRANCH}')
+              }
+            }
+            scriptPath('k8s/deploy/jenkins/pipelines/developer-build.Jenkinsfile')
+            lightweight(true)
+          }
+        }
+      }
+
+  - script: |
+      pipelineJob('developer_build_cleanup') {
+        description('Cleanup all releases deployed by developer_build in namespace yas-dev.')
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote {
+                  url('${GITHUB_REPO_URL}')
+                  credentials('github-credentials')
+                }
+                branch('*/${GITHUB_REPO_BRANCH}')
+              }
+            }
+            scriptPath('k8s/deploy/jenkins/pipelines/developer-build-cleanup.Jenkinsfile')
+            lightweight(true)
+          }
+        }
+      }

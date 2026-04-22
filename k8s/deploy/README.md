@@ -43,6 +43,14 @@ minikube addons enable ingress
 ```shell
 ./reset-jenkins.sh
 ```
+- Optional local test (without Jenkins): run [developer-build.sh](developer-build.sh) to deploy developer_build workload into `yas-dev` with NodePort services.
+```shell
+bash ./developer-build.sh
+```
+- Optional local cleanup: run [cleanup-developer-build.sh](cleanup-developer-build.sh) to remove developer_build releases.
+```shell
+bash ./cleanup-developer-build.sh
+```
 - Execute [setup-cluster.sh](setup-cluster.sh) to set up severs: `postgresql`, `elasticsearch`, `kafka`, `debezium connect`
 ```shell
 ./setup-cluster.sh

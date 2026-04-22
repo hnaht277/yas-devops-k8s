@@ -10,10 +10,11 @@ mapfile -t JENKINS_CONFIG < <(
     .jenkins.admin.password,
     .jenkins.localUrl,
     .jenkins.sharedUrl,
-    .jenkins.github.repoUrl' ./cluster-config.yaml
+    .jenkins.github.repoUrl,
+    .jenkins.github.repoBranch // "main"' ./cluster-config.yaml
 )
 
-if [[ "${#JENKINS_CONFIG[@]}" -ne 8 ]]; then
+if [[ "${#JENKINS_CONFIG[@]}" -ne 9 ]]; then
   echo "Failed to read Jenkins configuration from cluster-config.yaml" >&2
   exit 1
 fi
@@ -26,6 +27,7 @@ JENKINS_ADMIN_PASSWORD="${JENKINS_CONFIG[4]}"
 JENKINS_LOCAL_URL="${JENKINS_CONFIG[5]}"
 JENKINS_SHARED_URL="${JENKINS_CONFIG[6]}"
 GITHUB_REPO_URL="${JENKINS_CONFIG[7]}"
+GITHUB_REPO_BRANCH="${JENKINS_CONFIG[8]}"
 
 if [[ "$JENKINS_MODE" == "shared" ]]; then
   VALUES_FILE="./jenkins/values-shared.yaml"
@@ -38,6 +40,8 @@ fi
 export JENKINS_URL
 export JENKINS_NAMESPACE
 export JENKINS_RELEASE_NAME
+export GITHUB_REPO_URL
+export GITHUB_REPO_BRANCH
 
 JENKINS_VALUES_RENDERED="$(mktemp)"
 JENKINS_JCASC_RENDERED="$(mktemp)"
@@ -69,4 +73,5 @@ kubectl get svc -n "$JENKINS_NAMESPACE"
 echo "Jenkins mode: $JENKINS_MODE"
 echo "For local mode, get URL: minikube service $JENKINS_RELEASE_NAME -n $JENKINS_NAMESPACE --url"
 echo "GitHub repo: $GITHUB_REPO_URL"
+echo "GitHub repo branch for Jenkins jobs: $GITHUB_REPO_BRANCH"
 echo "Create Jenkins UI credentials manually with IDs: github-credentials and docker-registry-creds"

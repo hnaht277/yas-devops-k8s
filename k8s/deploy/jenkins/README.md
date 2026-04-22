@@ -35,6 +35,44 @@ Manage Jenkins -> Credentials -> System -> Global credentials -> Add Credentials
 - github-credentials: GitHub username + PAT
 - docker-registry-creds: Docker Hub username + PAT
 
+## Auto-created jobs via JCasC
+
+After running `./setup-jenkins.sh`, Jenkins creates two pipeline jobs from SCM:
+
+- `developer_build`: deploy all YAS services into namespace `yas-dev` with per-service branch parameters.
+- `developer_build_cleanup`: remove all releases deployed by `developer_build`.
+
+Pipeline files are stored in this repository:
+
+- `k8s/deploy/jenkins/pipelines/developer-build.Jenkinsfile`
+- `k8s/deploy/jenkins/pipelines/developer-build-cleanup.Jenkinsfile`
+
+The jobs use scripts:
+
+- `k8s/deploy/developer-build.sh`
+- `k8s/deploy/cleanup-developer-build.sh`
+
+## How to use developer_build
+
+1. Ensure CI has pushed `main` tags for all services at least once (run CI on `main` with force-all option).
+2. Open Jenkins job `developer_build`.
+3. Set the branch parameter only for the service you are testing (for example `TAX_BRANCH=dev_tax_service`), keep all others as `main`.
+4. Run the job.
+5. Read URLs from job output (NodePort access format: `http://yas.local.com:<nodePort>`).
+
+Result artifact file from the job:
+
+- `k8s/deploy/developer-build-result.txt`
+
+## How to cleanup
+
+Run `developer_build_cleanup` when finished testing.
+
+Optional parameters:
+
+- `REMOVE_YAS_CONFIGURATION=true`: remove shared config release in `yas-dev`.
+- `DELETE_NAMESPACE=true`: delete namespace `yas-dev`.
+
 ## Verify
 
 kubectl get pods -n cicd
