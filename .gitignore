@@ -29,3 +29,11 @@ hs_err_pid*
 .settings*
 .vscode
 *.iml
+
+# Local secret files
+.env
+.env.*
+!.env.example
+k8s/deploy/.env
+k8s/deploy/.env.*
+!k8s/deploy/.env.example

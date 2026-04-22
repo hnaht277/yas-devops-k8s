@@ -1,0 +1,43 @@
+controller:
+  image:
+    registry: docker.io
+    repository: jenkins/jenkins
+    tag: "2.504.1-lts-jdk21"
+  admin:
+    username: "${JENKINS_ADMIN_USERNAME}"
+    password: "${JENKINS_ADMIN_PASSWORD}"
+  serviceType: ClusterIP
+  installPlugins:
+    - kubernetes
+    - workflow-aggregator
+    - git
+    - github
+    - configuration-as-code
+    - credentials-binding
+    - job-dsl
+    - docker-workflow
+    - blueocean
+    - timestamper
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1024Mi"
+    limits:
+      cpu: "1000m"
+      memory: "2048Mi"
+  serviceAccount:
+    create: false
+    name: jenkins-deployer
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hostName: jenkins.yas.local.com
+    path: /
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-body-size: "20m"
+persistence:
+  enabled: true
+  size: 8Gi
+  storageClass: standard
+agent:
+  enabled: false
