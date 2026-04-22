@@ -148,6 +148,7 @@ for ((index=0; index<service_count; index++)); do
     --set-string "${values_key}.image.tag=${image_tag}" \
     --set "${values_key}.service.type=NodePort" \
     --set "${values_key}.ingress.enabled=false" \
+    --set "${values_key}.serviceMonitor.enabled=false" \
     --wait \
     --timeout 5m
 
