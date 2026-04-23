@@ -27,6 +27,9 @@ helm upgrade --install redis \
   --set auth.password="${REDIS_PASSWORD}" \
   oci://registry-1.docker.io/bitnamicharts/redis -n redis --create-namespace
 
+chmod +x ./setup-keycloak.sh
+chmod +x ./deploy-yas-configuration-minimal.sh
+
 ./setup-keycloak.sh
 
 kubectl create namespace yas-dev --dry-run=client -o yaml | kubectl apply -f -
