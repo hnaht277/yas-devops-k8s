@@ -119,6 +119,19 @@ pipeline {
       steps {
         script {
           def services = (env.CHANGED_SERVICES ?: '').split(',').findAll { it } as List
+          // ===== HANDLE LIBRARY MODULE (payment-paypal) =====
+          if (services.contains('payment-paypal')) {
+            echo "Detected change in payment-paypal (library). Triggering rebuild for payment service."
+
+            // add dependent service
+            if (!services.contains('payment')) {
+              services.add('payment')
+            }
+
+            // remove library from build image or jar build list
+            services.remove('payment-paypal')
+          }
+
           def javaServices = [] as List
           sh 'chmod +x ./mvnw'
 
@@ -167,6 +180,19 @@ fi
             def commitSha = sh(script: 'git rev-parse --short=12 HEAD', returnStdout: true).trim()
             def isMain = (env.BRANCH_NAME == 'main')
             def services = (env.CHANGED_SERVICES ?: '').split(',').findAll { it } as List
+
+            // ===== HANDLE LIBRARY MODULE (payment-paypal) =====
+            if (services.contains('payment-paypal')) {
+              echo "Detected change in payment-paypal (library). Triggering rebuild for payment service."
+
+              // add dependent service
+              if (!services.contains('payment')) {
+                services.add('payment')
+              }
+
+              // remove library from build image
+              services.remove('payment-paypal')
+            }
 
             services.each { serviceName ->
               def imageBase = "${env.REGISTRY}/${env.DOCKERHUB_NAMESPACE}/${env.IMAGE_PREFIX}-${serviceName}"

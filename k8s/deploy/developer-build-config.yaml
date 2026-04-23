@@ -72,12 +72,12 @@ services:
     branchParam: PAYMENT_BRANCH
     defaultBranch: main
 
-  - name: payment-paypal
-    chart: payment-paypal
-    release: payment-paypal
-    valuesKey: backend
-    branchParam: PAYMENT_PAYPAL_BRANCH
-    defaultBranch: main
+  # - name: payment-paypal
+  #   chart: payment-paypal
+  #   release: payment-paypal
+  #   valuesKey: backend
+  #   branchParam: PAYMENT_PAYPAL_BRANCH
+  #   defaultBranch: main
 
   - name: product
     chart: product
