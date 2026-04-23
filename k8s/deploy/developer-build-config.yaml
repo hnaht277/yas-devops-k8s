@@ -14,6 +14,7 @@ services:
     release: backoffice-ui
     valuesKey: ui
     branchParam: BACKOFFICE_BRANCH
+    tagParam: BACKOFFICE_TAG
     defaultBranch: main
 
   - name: backoffice-bff
@@ -21,6 +22,7 @@ services:
     release: backoffice-bff
     valuesKey: backend
     branchParam: BACKOFFICE_BFF_BRANCH
+    tagParam: BACKOFFICE_BFF_TAG
     defaultBranch: main
 
   - name: cart
@@ -28,6 +30,7 @@ services:
     release: cart
     valuesKey: backend
     branchParam: CART_BRANCH
+    tagParam: CART_TAG
     defaultBranch: main
 
   - name: customer
@@ -35,6 +38,7 @@ services:
     release: customer
     valuesKey: backend
     branchParam: CUSTOMER_BRANCH
+    tagParam: CUSTOMER_TAG
     defaultBranch: main
 
   - name: inventory
@@ -42,6 +46,7 @@ services:
     release: inventory
     valuesKey: backend
     branchParam: INVENTORY_BRANCH
+    tagParam: INVENTORY_TAG
     defaultBranch: main
 
   - name: location
@@ -49,6 +54,7 @@ services:
     release: location
     valuesKey: backend
     branchParam: LOCATION_BRANCH
+    tagParam: LOCATION_TAG
     defaultBranch: main
 
   - name: media
@@ -56,6 +62,7 @@ services:
     release: media
     valuesKey: backend
     branchParam: MEDIA_BRANCH
+    tagParam: MEDIA_TAG
     defaultBranch: main
 
   - name: order
@@ -63,6 +70,7 @@ services:
     release: order
     valuesKey: backend
     branchParam: ORDER_BRANCH
+    tagParam: ORDER_TAG
     defaultBranch: main
 
   - name: payment
@@ -70,6 +78,7 @@ services:
     release: payment
     valuesKey: backend
     branchParam: PAYMENT_BRANCH
+    tagParam: PAYMENT_TAG
     defaultBranch: main
 
   # - name: payment-paypal
@@ -77,6 +86,7 @@ services:
   #   release: payment-paypal
   #   valuesKey: backend
   #   branchParam: PAYMENT_PAYPAL_BRANCH
+  #   tagParam: PAYMENT_PAYPAL_TAG
   #   defaultBranch: main
 
   - name: product
@@ -84,6 +94,7 @@ services:
     release: product
     valuesKey: backend
     branchParam: PRODUCT_BRANCH
+    tagParam: PRODUCT_TAG
     defaultBranch: main
 
   - name: promotion
@@ -91,6 +102,7 @@ services:
     release: promotion
     valuesKey: backend
     branchParam: PROMOTION_BRANCH
+    tagParam: PROMOTION_TAG
     defaultBranch: main
 
   - name: rating
@@ -98,6 +110,7 @@ services:
     release: rating
     valuesKey: backend
     branchParam: RATING_BRANCH
+    tagParam: RATING_TAG
     defaultBranch: main
 
   - name: recommendation
@@ -105,6 +118,7 @@ services:
     release: recommendation
     valuesKey: backend
     branchParam: RECOMMENDATION_BRANCH
+    tagParam: RECOMMENDATION_TAG
     defaultBranch: main
 
   - name: sampledata
@@ -112,6 +126,7 @@ services:
     release: sampledata
     valuesKey: backend
     branchParam: SAMPLEDATA_BRANCH
+    tagParam: SAMPLEDATA_TAG
     defaultBranch: main
 
   - name: search
@@ -119,6 +134,7 @@ services:
     release: search
     valuesKey: backend
     branchParam: SEARCH_BRANCH
+    tagParam: SEARCH_TAG
     defaultBranch: main
 
   - name: storefront
@@ -126,6 +142,7 @@ services:
     release: storefront-ui
     valuesKey: ui
     branchParam: STOREFRONT_BRANCH
+    tagParam: STOREFRONT_TAG
     defaultBranch: main
 
   - name: storefront-bff
@@ -133,6 +150,7 @@ services:
     release: storefront-bff
     valuesKey: backend
     branchParam: STOREFRONT_BFF_BRANCH
+    tagParam: STOREFRONT_BFF_TAG
     defaultBranch: main
 
   - name: tax
@@ -140,6 +158,7 @@ services:
     release: tax
     valuesKey: backend
     branchParam: TAX_BRANCH
+    tagParam: TAX_TAG
     defaultBranch: main
 
   - name: webhook
@@ -147,4 +166,5 @@ services:
     release: webhook
     valuesKey: backend
     branchParam: WEBHOOK_BRANCH
+    tagParam: WEBHOOK_TAG
     defaultBranch: main
