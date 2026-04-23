@@ -1,5 +1,29 @@
 databaseChangeLog:
-  - includeAll:
-      path: db/changelog/ddl/
-  - includeAll:
-      path: db/changelog/data/
+
+  # ===== DDL (schema) =====
+  - include:
+      file: db/changelog/ddl/changelog-0001.sql
+  - include:
+      file: db/changelog/ddl/changelog-0002.sql
+  - include:
+      file: db/changelog/ddl/changelog-0003.sql
+  - include:
+      file: db/changelog/ddl/changelog-0004.sql   # rename column
+  - include:
+      file: db/changelog/ddl/changelog-0005.sql   # compatibility fix
+
+  # ===== DATA (seed data) =====
+  - include:
+      file: db/changelog/data/changelog-0001-provider.sql
+  - include:
+      file: db/changelog/data/changelog-0002-provider.sql
+  - include:
+      file: db/changelog/data/changelog-0003-provider.sql
+  - include:
+      file: db/changelog/data/changelog-0004-provider.sql
+  - include:
+      file: db/changelog/data/changelog-0005-provider.sql
+
+  # ===== CLEANUP (remove legacy) =====
+  - include:
+      file: db/changelog/cleanup/changelog-0006-cleanup.sql
