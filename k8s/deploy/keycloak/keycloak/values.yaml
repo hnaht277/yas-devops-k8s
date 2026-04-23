@@ -1,4 +1,5 @@
-hostname: identity.yas.local.com
+# hostname: identity.yas.local.com
+hostname: keycloak-service.keycloak.svc.cluster.local
 backofficeRedirectUrl: http://backoffice.yas.local.com
 storefrontRedirectUrl: http://storefront.yas.local.com
 postgresql:
