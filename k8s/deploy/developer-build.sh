@@ -9,7 +9,7 @@ CHARTS_DIR="${CHARTS_DIR:-${REPO_ROOT}/k8s/charts}"
 RESULT_FILE="${RESULT_FILE:-${SCRIPT_DIR}/developer-build-result.txt}"
 DEPLOY_YAS_CONFIGURATION="${DEPLOY_YAS_CONFIGURATION:-true}"
 
-for command_name in yq helm kubectl git awk; do
+for command_name in yq helm kubectl curl sed; do
   if ! command -v "${command_name}" >/dev/null 2>&1; then
     echo "Missing required command: ${command_name}" >&2
     exit 1
@@ -58,41 +58,104 @@ if [[ -z "${IMAGE_PREFIX}" || "${IMAGE_PREFIX}" == "null" ]]; then
   exit 1
 fi
 
-REPO_URL="${GITHUB_REPO_URL:-}"
-if [[ -z "${REPO_URL}" && -f "${CLUSTER_CONFIG_FILE}" ]]; then
-  REPO_URL="$(yq -r '.jenkins.github.repoUrl // ""' "${CLUSTER_CONFIG_FILE}")"
-fi
-
-if [[ -z "${REPO_URL}" || "${REPO_URL}" == "null" ]]; then
-  REPO_URL="$(git -C "${REPO_ROOT}" config --get remote.origin.url || true)"
-fi
-
-if [[ -z "${REPO_URL}" ]]; then
-  echo "Unable to resolve repository URL from environment, cluster-config, or git remote." >&2
-  exit 1
-fi
-
-AUTH_REPO_URL="${REPO_URL}"
-if [[ -n "${GITHUB_USER:-}" && -n "${GITHUB_TOKEN:-}" && "${REPO_URL}" =~ ^https:// ]]; then
-  AUTH_REPO_URL="${REPO_URL/https:\/\//https://${GITHUB_USER}:${GITHUB_TOKEN}@}"
-fi
-
-resolve_branch_tag() {
+normalize_branch_to_tag() {
   local branch_name="$1"
-  local commit_sha
+  local normalized
 
-  if [[ "${branch_name}" == "main" ]]; then
-    echo "${MAIN_TAG}"
-    return 0
+  normalized="$(echo "${branch_name}" | tr '[:upper:]' '[:lower:]')"
+  normalized="${normalized//\//-}"
+  normalized="$(echo "${normalized}" | sed -E 's/[^a-z0-9_.-]+/-/g; s/^[.-]+//; s/[.-]+$//; s/-+/-/g')"
+
+  if [[ -z "${normalized}" ]]; then
+    normalized="detached"
   fi
 
-  commit_sha="$(git ls-remote "${AUTH_REPO_URL}" "refs/heads/${branch_name}" | awk 'NR==1 {print $1}')"
-  if [[ -z "${commit_sha}" ]]; then
-    echo "Cannot resolve branch '${branch_name}' from ${REPO_URL}." >&2
+  if [[ ! "${normalized}" =~ ^[a-z0-9_] ]]; then
+    normalized="b-${normalized}"
+  fi
+
+  normalized="${normalized:0:128}"
+  normalized="$(echo "${normalized}" | sed -E 's/[.-]+$//')"
+
+  if [[ -z "${normalized}" ]]; then
+    normalized="detached"
+  fi
+
+  echo "${normalized}"
+}
+
+is_valid_docker_tag() {
+  local tag="$1"
+  [[ "${tag}" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]]
+}
+
+image_tag_exists() {
+  local image_repository="$1"
+  local tag="$2"
+  local registry_normalized
+  local repository_path
+  local status_code
+
+  registry_normalized="${IMAGE_REGISTRY#https://}"
+  registry_normalized="${registry_normalized#http://}"
+
+  if [[ "${registry_normalized}" == "docker.io" || "${registry_normalized}" == "index.docker.io" || "${registry_normalized}" == "registry-1.docker.io" ]]; then
+    repository_path="${image_repository#docker.io/}"
+    repository_path="${repository_path#index.docker.io/}"
+    repository_path="${repository_path#registry-1.docker.io/}"
+
+    status_code="$(curl -s -o /dev/null -w '%{http_code}' "https://registry.hub.docker.com/v2/repositories/${repository_path}/tags/${tag}" || true)"
+    if [[ "${status_code}" == "200" ]]; then
+      return 0
+    fi
+
+    if [[ "${status_code}" == "401" || "${status_code}" == "429" ]]; then
+      echo "Warning: cannot validate tag '${tag}' for ${image_repository} (HTTP ${status_code}); assume exists for safety." >&2
+      return 0
+    fi
+
     return 1
   fi
 
-  echo "${commit_sha:0:12}"
+  echo "Warning: tag existence check is implemented for docker.io only; skipping strict check for registry '${IMAGE_REGISTRY}'." >&2
+  return 0
+}
+
+resolve_image_tag() {
+  local service_name="$1"
+  local branch_name="$2"
+  local manual_tag="$3"
+  local image_repository="$4"
+  local branch_tag
+
+  if [[ -n "${manual_tag}" ]]; then
+    if ! is_valid_docker_tag "${manual_tag}"; then
+      echo "Invalid manual tag '${manual_tag}' for ${service_name}." >&2
+      return 1
+    fi
+
+    if image_tag_exists "${image_repository}" "${manual_tag}"; then
+      echo "${manual_tag}|manual"
+      return 0
+    fi
+
+    echo "Manual tag '${manual_tag}' not found for ${service_name} in ${image_repository}." >&2
+    return 1
+  fi
+
+  branch_tag="$(normalize_branch_to_tag "${branch_name}")"
+  if image_tag_exists "${image_repository}" "${branch_tag}"; then
+    echo "${branch_tag}|branch:${branch_name}"
+    return 0
+  fi
+
+  if image_tag_exists "${image_repository}" "${MAIN_TAG}"; then
+    echo "${MAIN_TAG}|fallback-main"
+    return 0
+  fi
+
+  echo "No usable image tag found for ${service_name}. Tried branch tag '${branch_tag}' and fallback main tag '${MAIN_TAG}' in ${image_repository}." >&2
+  return 1
 }
 
 if [[ "${DEPLOY_YAS_CONFIGURATION}" == "true" ]]; then
@@ -113,7 +176,7 @@ fi
 
 mkdir -p "$(dirname "${RESULT_FILE}")"
 {
-  echo "service|chart|release|branch|image_tag|service_name|node_port|url"
+  echo "service|chart|release|branch|tag_param|manual_tag|image_tag|tag_source|service_name|node_port|url"
 } >"${RESULT_FILE}"
 
 for ((index=0; index<service_count; index++)); do
@@ -122,18 +185,35 @@ for ((index=0; index<service_count; index++)); do
   release_name="$(yq -r ".services[${index}].release // .services[${index}].chart" "${CONFIG_FILE}")"
   values_key="$(yq -r ".services[${index}].valuesKey" "${CONFIG_FILE}")"
   branch_param="$(yq -r ".services[${index}].branchParam" "${CONFIG_FILE}")"
+  tag_param="$(yq -r ".services[${index}].tagParam // \"\"" "${CONFIG_FILE}")"
   default_branch="$(yq -r ".services[${index}].defaultBranch // \"main\"" "${CONFIG_FILE}")"
+
+  if [[ -z "${tag_param}" || "${tag_param}" == "null" ]]; then
+    if [[ "${branch_param}" == *_BRANCH ]]; then
+      tag_param="${branch_param%_BRANCH}_TAG"
+    else
+      tag_param="${branch_param}_TAG"
+    fi
+  fi
 
   selected_branch="${!branch_param:-${default_branch}}"
   selected_branch="${selected_branch:-${default_branch}}"
+  manual_tag="${!tag_param:-}"
 
   if [[ ! "${selected_branch}" =~ ^[A-Za-z0-9._/-]+$ ]]; then
     echo "Invalid branch name '${selected_branch}' for ${service_name}" >&2
     exit 1
   fi
 
-  image_tag="$(resolve_branch_tag "${selected_branch}")"
+  if [[ -n "${manual_tag}" ]] && [[ ! "${manual_tag}" =~ ^[A-Za-z0-9_.-]+$ ]]; then
+    echo "Invalid tag '${manual_tag}' for ${service_name}." >&2
+    exit 1
+  fi
+
   image_repository="${IMAGE_REGISTRY}/${IMAGE_NAMESPACE}/${IMAGE_PREFIX}-${service_name}"
+  resolved_tag_info="$(resolve_image_tag "${service_name}" "${selected_branch}" "${manual_tag}" "${image_repository}")"
+  image_tag="${resolved_tag_info%%|*}"
+  tag_source="${resolved_tag_info#*|}"
   chart_path="${CHARTS_DIR}/${chart_name}"
 
   if [[ ! -d "${chart_path}" ]]; then
@@ -141,7 +221,11 @@ for ((index=0; index<service_count; index++)); do
     exit 1
   fi
 
-  echo "Deploying ${release_name} (${service_name}) from branch ${selected_branch} with tag ${image_tag}"
+  echo "Deploying ${release_name} (${service_name})"
+  echo "  branch param ${branch_param}: ${selected_branch}"
+  echo "  tag param ${tag_param}: ${manual_tag:-<empty>}"
+  echo "  resolved image tag: ${image_tag} (source: ${tag_source})"
+
   helm dependency build "${chart_path}" >/dev/null
   helm upgrade --install "${release_name}" "${chart_path}" \
     --namespace "${DEPLOY_NAMESPACE}" \
@@ -169,7 +253,7 @@ for ((index=0; index<service_count; index++)); do
   fi
 
   access_url="http://${DOMAIN}:${http_node_port}"
-  echo "${service_name}|${chart_name}|${release_name}|${selected_branch}|${image_tag}|${service_k8s_name}|${http_node_port}|${access_url}" >>"${RESULT_FILE}"
+  echo "${service_name}|${chart_name}|${release_name}|${selected_branch}|${tag_param}|${manual_tag}|${image_tag}|${tag_source}|${service_k8s_name}|${http_node_port}|${access_url}" >>"${RESULT_FILE}"
 done
 
 echo "Developer build deployment completed."

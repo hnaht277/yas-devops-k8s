@@ -1,3 +1,25 @@
+def normalizeDockerTag(String rawValue) {
+  def value = (rawValue ?: 'detached').toLowerCase()
+  value = value.replaceAll('[^a-z0-9_.-]+', '-')
+  value = value.replaceAll('^[.-]+', '')
+  value = value.replaceAll('[.-]+$', '')
+  value = value.replaceAll('-{2,}', '-')
+
+  if (!value) {
+    value = 'detached'
+  }
+
+  if (!(value ==~ /^[a-z0-9_].*/)) {
+    value = "b-${value}"
+  }
+
+  if (value.length() > 128) {
+    value = value.substring(0, 128).replaceAll('[.-]+$', '')
+  }
+
+  return value ?: 'detached'
+}
+
 pipeline {
   agent { label 'kaniko' }
 
@@ -95,8 +117,19 @@ pipeline {
             changedServicesStr = selected ? selected.join(',') : ''
           }
 
+          def normalizedServices = (changedServicesStr ? changedServicesStr.split(',') : [])
+            .collect { it.trim() }
+            .findAll { it } as Set
+
+          if (normalizedServices.remove('payment-paypal')) {
+            echo 'Detected change in payment-paypal (library). Mapping build target to payment service image.'
+            normalizedServices.add('payment')
+          }
+
+          changedServicesStr = normalizedServices ? normalizedServices.toList().sort().join(',') : ''
+
           echo "DEBUG changedServicesStr raw: ${changedServicesStr}"
-          echo "DEBUG changedServicesStr class: ${changedServicesStr?.getClass()}"  
+          echo "DEBUG changedServicesStr class: ${changedServicesStr?.getClass()}"
 
           // assign 1 lần duy nhất
           env.CHANGED_SERVICES = changedServicesStr
@@ -119,18 +152,6 @@ pipeline {
       steps {
         script {
           def services = (env.CHANGED_SERVICES ?: '').split(',').findAll { it } as List
-          // ===== HANDLE LIBRARY MODULE (payment-paypal) =====
-          if (services.contains('payment-paypal')) {
-            echo "Detected change in payment-paypal (library). Triggering rebuild for payment service."
-
-            // add dependent service
-            if (!services.contains('payment')) {
-              services.add('payment')
-            }
-
-            // remove library from build image or jar build list
-            services.remove('payment-paypal')
-          }
 
           def javaServices = [] as List
           sh 'chmod +x ./mvnw'
@@ -179,24 +200,14 @@ fi
           script {
             def commitSha = sh(script: 'git rev-parse --short=12 HEAD', returnStdout: true).trim()
             def isMain = (env.BRANCH_NAME == 'main')
+            def branchTag = normalizeDockerTag(env.BRANCH_NAME)
             def services = (env.CHANGED_SERVICES ?: '').split(',').findAll { it } as List
 
-            // ===== HANDLE LIBRARY MODULE (payment-paypal) =====
-            if (services.contains('payment-paypal')) {
-              echo "Detected change in payment-paypal (library). Triggering rebuild for payment service."
-
-              // add dependent service
-              if (!services.contains('payment')) {
-                services.add('payment')
-              }
-
-              // remove library from build image
-              services.remove('payment-paypal')
-            }
+            echo "Image tag strategy for this run: commitSha=${commitSha}, branchTag=${branchTag}, mainAlias=${isMain}"
 
             services.each { serviceName ->
               def imageBase = "${env.REGISTRY}/${env.DOCKERHUB_NAMESPACE}/${env.IMAGE_PREFIX}-${serviceName}"
-              echo "Building image for ${serviceName}: ${imageBase}:${commitSha}"
+              echo "Building image for ${serviceName}: ${imageBase}:${commitSha}, ${imageBase}:${branchTag}${isMain ? ', ' + imageBase + ':main' : ''}"
 
               sh """#!/bin/sh
 set -eu
@@ -236,8 +247,8 @@ echo "DEBUG DOCKER USER: \$DOCKERHUB_USER"
 echo "DEBUG AUTH_B64 length: \$(echo -n "\$AUTH_B64" | wc -c)"
 echo "DEBUG IMAGE: ${imageBase}:${commitSha}"
 
-DEST_ARGS="--destination=${imageBase}:${commitSha}"
-if [ "${isMain}" = "true" ]; then
+DEST_ARGS="--destination=${imageBase}:${commitSha} --destination=${imageBase}:${branchTag}"
+if [ "${isMain}" = "true" ] && [ "${branchTag}" != "main" ]; then
   DEST_ARGS="\$DEST_ARGS --destination=${imageBase}:main"
 fi
 
