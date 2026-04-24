@@ -31,6 +31,10 @@ if [[ "${service_count}" -le 0 ]]; then
 fi
 
 echo "Cleaning developer build releases in namespace ${DEPLOY_NAMESPACE}"
+echo "Helm releases in ${DEPLOY_NAMESPACE} (before cleanup):"
+helm list -n "${DEPLOY_NAMESPACE}" -o wide || true
+echo "---"
+
 for ((index=0; index<service_count; index++)); do
   release_name="$(yq -r ".services[${index}].release // .services[${index}].chart" "${CONFIG_FILE}")"
   echo "Uninstalling ${release_name}"
