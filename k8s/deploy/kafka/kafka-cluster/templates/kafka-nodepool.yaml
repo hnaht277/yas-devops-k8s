@@ -1,0 +1,20 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaNodePool
+metadata:
+  name: kafka-pool
+  labels:
+    strimzi.io/cluster: kafka-cluster
+    {{- include "kafka.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.kafka.replicas }}
+  roles:
+    - controller
+    - broker
+  storage:
+    type: jbod
+    volumes:
+      - id: 0
+        type: persistent-claim
+        size: {{ .Values.kafka.storageSize | quote }}
+        deleteClaim: false
+        kraftMetadata: shared

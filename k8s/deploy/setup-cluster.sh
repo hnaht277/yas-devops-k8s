@@ -20,6 +20,9 @@ GRAFANA_USERNAME GRAFANA_PASSWORD \
  .postgresql.password, .kafka.replicas, .zookeeper.replicas,
  .elasticsearch.replicas, .grafana.username, .grafana.password' ./cluster-config.yaml)
 
+KAFKA_VERSION=$(yq -r '.kafka.version // "4.2.0"' ./cluster-config.yaml)
+KAFKA_METADATA_VERSION=$(yq -r '.kafka.metadataVersion // "4.2-IV1"' ./cluster-config.yaml)
+
 # Install the postgres-operator
 helm upgrade --install postgres-operator postgres-operator-charts/postgres-operator \
  --create-namespace --namespace postgres
@@ -40,10 +43,34 @@ helm upgrade --install pgadmin ./postgres/pgadmin \
 helm upgrade --install kafka-operator strimzi/strimzi-kafka-operator \
 --create-namespace --namespace kafka
 
+# KafkaConnect Strimzi build (debeziumConnect.buildImage=true) needs push credentials as Secret docker-registry.secret.
+# Option A — one-time or when rotating credentials: export then run this script in the SAME shell:
+#   export DOCKERHUB_USER='your-dockerhub-username'
+#   export DOCKERHUB_PASS='your-dockerhub-password-or-PAT'   # PAT recommended if 2FA is on
+#   Optional: export DOCKER_REGISTRY_SERVER='https://index.docker.io/v1/'  # default; use ghcr.io etc. if you push elsewhere
+# The Secret persists in the cluster; you do NOT need to export every run unless you recreate the cluster/secret.
+# Option B — create the Secret manually once: kubectl create secret docker-registry ... (see message below).
+if [[ -n "${DOCKERHUB_USER:-}" && -n "${DOCKERHUB_PASS:-}" ]]; then
+kubectl create secret docker-registry docker-registry.secret \
+  --namespace=kafka \
+  --docker-server="${DOCKER_REGISTRY_SERVER:-https://index.docker.io/v1/}" \
+  --docker-username="$DOCKERHUB_USER" \
+  --docker-password="$DOCKERHUB_PASS" \
+  --dry-run=client -o yaml | kubectl apply -f -
+echo "Applied docker-registry.secret in namespace kafka (from DOCKERHUB_USER / DOCKERHUB_PASS)."
+else
+echo "Note: With debeziumConnect.buildImage=true, namespace kafka needs Secret docker-registry.secret for image push."
+echo "  Export DOCKERHUB_USER and DOCKERHUB_PASS (see comments above) and re-run this script, or run once:"
+echo "  kubectl create secret docker-registry docker-registry.secret -n kafka \\"
+echo "    --docker-server=https://index.docker.io/v1/ --docker-username=USER --docker-password=TOKEN"
+fi
+
 #Install kafka and postgresql connector
 helm upgrade --install kafka-cluster ./kafka/kafka-cluster \
 --create-namespace --namespace kafka \
 --set kafka.replicas="$KAFKA_REPLICAS" \
+--set kafka.version="$KAFKA_VERSION" \
+--set kafka.metadataVersion="$KAFKA_METADATA_VERSION" \
 --set zookeeper.replicas="$ZOOKEEPER_REPLICAS" \
 --set postgresql.username="$POSTGRESQL_USERNAME" \
 --set postgresql.password="$POSTGRESQL_PASSWORD"
