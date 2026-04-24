@@ -32,7 +32,7 @@ fi
 
 echo "Cleaning developer build releases in namespace ${DEPLOY_NAMESPACE}"
 echo "Helm releases in ${DEPLOY_NAMESPACE} (before cleanup):"
-helm list -n "${DEPLOY_NAMESPACE}" -o wide || true
+helm list -n "${DEPLOY_NAMESPACE}" -o table || true
 echo "---"
 
 for ((index=0; index<service_count; index++)); do

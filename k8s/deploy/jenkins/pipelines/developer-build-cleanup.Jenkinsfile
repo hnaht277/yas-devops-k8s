@@ -25,7 +25,7 @@ pipeline {
 set -euo pipefail
 NS="$(yq -r '.deployment.namespace' k8s/deploy/developer-build-config.yaml)"
 echo "=== Audit: helm list -n ${NS} (before cleanup) ==="
-helm list -n "${NS}" -o wide || true
+helm list -n "${NS}" -o table || true
 echo "===================================================="
 '''
       }
@@ -36,8 +36,8 @@ echo "===================================================="
         sh '''#!/usr/bin/env bash
 set -euo pipefail
 chmod +x k8s/deploy/cleanup-developer-build.sh
-export REMOVE_YAS_CONFIGURATION="${REMOVE_YAS_CONFIGURATION}"
-export DELETE_NAMESPACE="${DELETE_NAMESPACE}"
+export REMOVE_YAS_CONFIGURATION="${REMOVE_YAS_CONFIGURATION:-false}"
+export DELETE_NAMESPACE="${DELETE_NAMESPACE:-false}"
 k8s/deploy/cleanup-developer-build.sh
 '''
       }
