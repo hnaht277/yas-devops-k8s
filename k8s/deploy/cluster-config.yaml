@@ -5,6 +5,10 @@ postgresql:
   password: admin
 kafka:
   replicas: 1
+  # Align with Strimzi / KafkaConnect spec.version (kubectl get kafka -n kafka -o jsonpath='{.status.kafkaVersion}')
+  version: "4.2.0"
+  # KRaft metadata (kubectl get kafka -n kafka -o jsonpath='{.status.kafkaMetadataVersion}')
+  metadataVersion: "4.2-IV1"
 zookeeper:
   replicas: 1
 elasticsearch:
