@@ -19,6 +19,18 @@ pipeline {
       }
     }
 
+    stage('Audit: Helm releases') {
+      steps {
+        sh '''#!/usr/bin/env bash
+set -euo pipefail
+NS="$(yq -r '.deployment.namespace' k8s/deploy/developer-build-config.yaml)"
+echo "=== Audit: helm list -n ${NS} (before cleanup) ==="
+helm list -n "${NS}" -o wide || true
+echo "===================================================="
+'''
+      }
+    }
+
     stage('Cleanup developer_build') {
       steps {
         sh '''#!/usr/bin/env bash
