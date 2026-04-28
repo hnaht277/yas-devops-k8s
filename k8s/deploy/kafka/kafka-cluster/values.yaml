@@ -1,5 +1,11 @@
 kafka:
   replicas: 1
+  # Must match the Kafka version Strimzi runs for this cluster (see: kubectl get kafka -n kafka -o jsonpath='{.status.kafkaVersion}').
+  version: "4.2.0"
+  # KRaft metadata protocol version (pair with .status.kafkaMetadataVersion when upgrading).
+  metadataVersion: "4.2-IV1"
+  storageSize: 100Gi
+# Unused with Strimzi 0.46+ KRaft-only Kafka; kept for older docs / cluster-config compatibility.
 zookeeper:
   replicas: 1
   storeSize: 5Gi
@@ -7,5 +13,14 @@ postgresql:
   username: yasadminuser
   password: admin
 debeziumConnect:
-  image: ghcr.io/nashtech-garage/debezium-connect-postgresql:latest
-  buildImage: false #Enabled when build debezium-connect-postgresql image
+  # true: Strimzi builds a Connect image (Kafka version + Debezium plugin) and PUSHes to the registry below.
+  #     Requires Secret "docker-registry.secret" in namespace kafka (see k8s/deploy/setup-cluster.sh).
+  # false: use a pre-built third-party image; on Strimzi 0.51+ you may need the log4j1 ConfigMap workaround in this chart.
+  buildImage: true
+  # With buildImage: true, only build.output.image is set (Strimzi 0.51 rejects spec.image == build.output.image).
+  # With buildImage: false, this is the Connect image to pull.
+  image: docker.io/hnaht277/yas-debezium-connect:latest
+  pushSecret: docker-registry.secret
+  debeziumPluginVersion: "2.5.0.Final"
+  jvmXms: "512m"
+  jvmXmx: "1536m"

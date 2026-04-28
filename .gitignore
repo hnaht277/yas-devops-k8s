@@ -37,3 +37,6 @@ hs_err_pid*
 k8s/deploy/.env
 k8s/deploy/.env.*
 !k8s/deploy/.env.example
+
+# Generated deploy artifacts
+k8s/deploy/developer-build-result.txt

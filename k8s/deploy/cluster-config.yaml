@@ -5,6 +5,10 @@ postgresql:
   password: admin
 kafka:
   replicas: 1
+  # Align with Strimzi / KafkaConnect spec.version (kubectl get kafka -n kafka -o jsonpath='{.status.kafkaVersion}')
+  version: "4.2.0"
+  # KRaft metadata (kubectl get kafka -n kafka -o jsonpath='{.status.kafkaMetadataVersion}')
+  metadataVersion: "4.2-IV1"
 zookeeper:
   replicas: 1
 elasticsearch:
@@ -12,6 +16,8 @@ elasticsearch:
   username: yas
   password: LarUmB3A49NTg9YmgW4=
 keycloak:
+  # hostname: identity.yas.local.com
+  hostname: keycloak-service.keycloak.svc.cluster.local
   bootstrapAdmin:
     username: admin
     password: admin
@@ -33,6 +39,7 @@ jenkins:
     password: admin123
   github:
     repoUrl: https://github.com/hnaht277/yas-devops-k8s.git
+    repoBranch: main
   # Credentials are managed in Jenkins UI after bootstrap.
   # Required credential IDs:
   # - github-credentials
