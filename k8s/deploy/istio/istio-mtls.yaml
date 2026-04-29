@@ -1,0 +1,44 @@
+###############################################################################
+# istio-mtls.yaml — Enable mutual TLS (mTLS) for YAS namespace
+#
+# This configuration enforces STRICT mTLS for all service-to-service
+# communication within the 'yas' namespace. Any plaintext (non-mTLS)
+# request will be rejected.
+#
+# Components:
+#   1. PeerAuthentication  — server-side: only accept mTLS connections
+#   2. DestinationRule     — client-side: always use mTLS when calling peers
+#
+# Apply:
+#   kubectl apply -f istio-mtls.yaml
+#
+# Verify:
+#   istioctl x describe pod <pod-name> -n yas
+#   # Should show: "mTLS: STRICT"
+###############################################################################
+
+# --- PeerAuthentication: enforce mTLS on all workloads in 'yas' namespace ---
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: yas-strict-mtls
+  namespace: yas
+spec:
+  mtls:
+    mode: STRICT
+
+---
+
+# --- DestinationRule: use ISTIO_MUTUAL TLS for all yas services ---
+# This ensures the Envoy sidecar presents its Istio-issued client certificate
+# when connecting to any service in the yas namespace.
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: yas-mtls-destination
+  namespace: yas
+spec:
+  host: "*.yas.svc.cluster.local"
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL

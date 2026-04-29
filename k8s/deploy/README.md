@@ -122,3 +122,26 @@ On the left menu select `Expore` -> select `Loki` datasource -> select Label fil
 - container (Application)
 
 On the Loki also support track by traceId, on The Tempo you can select the Node graph to view the tracing of request 
+
+## Service Mesh (Istio + Kiali)
+Setup Istio service mesh with mTLS, authorization policies, retry policies, and Kiali visualization.
+
+See full documentation: [istio/README-service-mesh.md](istio/README-service-mesh.md)
+
+Quick start:
+```shell
+# Install Istio + Kiali
+chmod +x setup-istio.sh && ./setup-istio.sh
+
+# Apply mTLS, retry, and authorization policies
+kubectl apply -f istio/istio-mtls.yaml
+kubectl apply -f istio/istio-retry-policy.yaml
+kubectl apply -f istio/istio-authz-policy.yaml
+
+# Run tests
+chmod +x istio/test-service-mesh.sh && ./istio/test-service-mesh.sh
+
+# Open Kiali dashboard
+istioctl dashboard kiali
+```
+
