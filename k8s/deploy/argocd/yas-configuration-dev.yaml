@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: yas-configuration-dev
+  namespace: argocd
+spec:
+  project: yas
+  source:
+    repoURL: https://github.com/hnaht277/yas-devops-k8s.git
+    targetRevision: main
+    path: k8s/charts/yas-configuration
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

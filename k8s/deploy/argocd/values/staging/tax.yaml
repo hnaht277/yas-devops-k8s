@@ -1,0 +1,4 @@
+backend:
+  image:
+    repository: docker.io/hnaht277/yas-tax
+    tag: main

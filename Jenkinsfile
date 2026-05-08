@@ -20,6 +20,24 @@ def normalizeDockerTag(String rawValue) {
   return value ?: 'detached'
 }
 
+def resolveReleaseTag(String branchName, String tagName) {
+  def tag = (tagName ?: '').trim()
+  if (tag) {
+    return tag
+  }
+
+  def branch = (branchName ?: '').trim()
+  if (branch ==~ /^v\d+\.\d+\.\d+([-+][0-9A-Za-z.-]+)?$/) {
+    return branch
+  }
+
+  if (branch ==~ /^rc_v\d+\.\d+\.\d+([-+][0-9A-Za-z.-]+)?$/) {
+    return branch.replaceFirst(/^rc_/, '')
+  }
+
+  return ''
+}
+
 pipeline {
   agent { label 'kaniko' }
 
@@ -47,6 +65,9 @@ pipeline {
     stage('Checkout') {
       steps {
         checkout scm
+        script {
+          env.COMMIT_SHA = sh(script: 'git rev-parse --short=12 HEAD', returnStdout: true).trim()
+        }
       }
     }
 
@@ -81,8 +102,20 @@ pipeline {
           def changedFiles = changedFilesOutput ? changedFilesOutput.split('\n') : []
 
           def changedServicesStr = ''
+          def releaseTag = resolveReleaseTag(env.BRANCH_NAME, env.TAG_NAME)
+          def isRelease = releaseTag?.trim()
 
-          if (params.FORCE_ALL_SERVICES) {
+          env.RELEASE_TAG = releaseTag
+          env.IS_RELEASE = isRelease ? 'true' : 'false'
+
+          if (isRelease) {
+            changedServicesStr = services
+              .collect { it.trim() }
+              .findAll { it }
+              .join(',')
+
+            echo "Release build detected (${releaseTag}). Building all services."
+          } else if (params.FORCE_ALL_SERVICES) {
             changedServicesStr = services
               .collect { it.trim() }
               .findAll { it }
@@ -198,16 +231,27 @@ fi
           )
         ]) {
           script {
-            def commitSha = sh(script: 'git rev-parse --short=12 HEAD', returnStdout: true).trim()
+            def commitSha = env.COMMIT_SHA ?: sh(script: 'git rev-parse --short=12 HEAD', returnStdout: true).trim()
             def isMain = (env.BRANCH_NAME == 'main')
             def branchTag = normalizeDockerTag(env.BRANCH_NAME)
+            def releaseTag = env.RELEASE_TAG?.trim()
+            def isRelease = releaseTag ? true : false
+            def isReleaseFlag = isRelease ? 'true' : 'false'
             def services = (env.CHANGED_SERVICES ?: '').split(',').findAll { it } as List
 
-            echo "Image tag strategy for this run: commitSha=${commitSha}, branchTag=${branchTag}, mainAlias=${isMain}"
+            if (isRelease) {
+              echo "Image tag strategy for this run: releaseTag=${releaseTag}"
+            } else {
+              echo "Image tag strategy for this run: commitSha=${commitSha}, branchTag=${branchTag}, mainAlias=${isMain}"
+            }
 
             services.each { serviceName ->
               def imageBase = "${env.REGISTRY}/${env.DOCKERHUB_NAMESPACE}/${env.IMAGE_PREFIX}-${serviceName}"
-              echo "Building image for ${serviceName}: ${imageBase}:${commitSha}, ${imageBase}:${branchTag}${isMain ? ', ' + imageBase + ':main' : ''}"
+              if (isRelease) {
+                echo "Building image for ${serviceName}: ${imageBase}:${releaseTag}"
+              } else {
+                echo "Building image for ${serviceName}: ${imageBase}:${commitSha}, ${imageBase}:${branchTag}${isMain ? ', ' + imageBase + ':main' : ''}"
+              }
 
               sh """#!/bin/sh
 set -eu
@@ -248,7 +292,9 @@ echo "DEBUG AUTH_B64 length: \$(echo -n "\$AUTH_B64" | wc -c)"
 echo "DEBUG IMAGE: ${imageBase}:${commitSha}"
 
 DEST_ARGS="--destination=${imageBase}:${commitSha} --destination=${imageBase}:${branchTag}"
-if [ "${isMain}" = "true" ] && [ "${branchTag}" != "main" ]; then
+if [ "${isReleaseFlag}" = "true" ]; then
+  DEST_ARGS="--destination=${imageBase}:${releaseTag}"
+elif [ "${isMain}" = "true" ] && [ "${branchTag}" != "main" ]; then
   DEST_ARGS="\$DEST_ARGS --destination=${imageBase}:main"
 fi
 
@@ -270,6 +316,88 @@ rm -rf /kaniko/0 || true
 """
               }
             }
+          }
+        }
+      }
+    }
+
+    stage('Update GitOps Manifests') {
+      when {
+        expression {
+          def services = (env.CHANGED_SERVICES ?: '').trim()
+          def isRelease = (env.IS_RELEASE == 'true')
+          def isMain = (env.BRANCH_NAME == 'main')
+          return services && (isRelease || isMain)
+        }
+      }
+      steps {
+        withCredentials([
+          usernamePassword(
+            credentialsId: 'github-credentials',
+            usernameVariable: 'GIT_USER',
+            passwordVariable: 'GIT_TOKEN'
+          )
+        ]) {
+          script {
+            def isRelease = (env.IS_RELEASE == 'true')
+            def targetEnv = isRelease ? 'staging' : 'dev'
+            def targetBranch = isRelease ? 'staging' : 'main'
+            def imageTag = isRelease ? env.RELEASE_TAG : env.COMMIT_SHA
+            def servicesCsv = (env.CHANGED_SERVICES ?: '')
+
+            sh """#!/usr/bin/env bash
+set -euo pipefail
+
+git config user.email "ci-bot@local"
+git config user.name "ci-bot"
+
+git fetch origin "${targetBranch}" || true
+if git show-ref --quiet "refs/remotes/origin/${targetBranch}"; then
+  git checkout -B "${targetBranch}" "origin/${targetBranch}"
+else
+  git checkout -B "${targetBranch}"
+fi
+
+CONFIG_FILE="k8s/deploy/developer-build-config.yaml"
+VALUES_DIR="k8s/deploy/argocd/values/${targetEnv}"
+
+IFS=',' read -r -a services <<< "${servicesCsv}"
+for svc in "\${services[@]}"; do
+  chart="\$(yq -r ".services[] | select(.name==\\\"\${svc}\\\") | .chart" "\${CONFIG_FILE}")"
+  values_key="\$(yq -r ".services[] | select(.name==\\\"\${svc}\\\") | .valuesKey" "\${CONFIG_FILE}")"
+
+  if [ -z "\${chart}" ] || [ "\${chart}" = "null" ]; then
+    echo "Missing chart mapping for \${svc}" >&2
+    exit 1
+  fi
+
+  values_file="\${VALUES_DIR}/\${chart}.yaml"
+  if [ ! -f "\${values_file}" ]; then
+    echo "Missing values file: \${values_file}" >&2
+    exit 1
+  fi
+
+  repo="docker.io/${DOCKERHUB_NAMESPACE}/${IMAGE_PREFIX}-\${svc}"
+  yq -i ".\${values_key}.image.repository = \\\"\${repo}\\\"" "\${values_file}"
+  yq -i ".\${values_key}.image.tag = \\\"${imageTag}\\\"" "\${values_file}"
+done
+
+if git diff --quiet; then
+  echo "No GitOps changes to commit."
+  exit 0
+fi
+
+git add "\${VALUES_DIR}"
+git commit -m "chore(argocd): update ${targetEnv} image tags to ${imageTag}"
+
+REMOTE_URL="\$(git config --get remote.origin.url)"
+if [[ "\${REMOTE_URL}" == git@* ]]; then
+  REMOTE_URL="https://github.com/\${REMOTE_URL#git@github.com:}"
+fi
+PUSH_URL="https://${GIT_USER}:${GIT_TOKEN}@\${REMOTE_URL#https://}"
+
+git push "\${PUSH_URL}" HEAD:"${targetBranch}"
+"""
           }
         }
       }

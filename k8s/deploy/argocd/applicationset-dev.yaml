@@ -1,0 +1,91 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: yas-dev
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - name: backoffice-ui
+            chartPath: k8s/charts/backoffice-ui
+            valuesFile: ../../deploy/argocd/values/dev/backoffice-ui.yaml
+          - name: backoffice-bff
+            chartPath: k8s/charts/backoffice-bff
+            valuesFile: ../../deploy/argocd/values/dev/backoffice-bff.yaml
+          - name: cart
+            chartPath: k8s/charts/cart
+            valuesFile: ../../deploy/argocd/values/dev/cart.yaml
+          - name: customer
+            chartPath: k8s/charts/customer
+            valuesFile: ../../deploy/argocd/values/dev/customer.yaml
+          - name: inventory
+            chartPath: k8s/charts/inventory
+            valuesFile: ../../deploy/argocd/values/dev/inventory.yaml
+          - name: location
+            chartPath: k8s/charts/location
+            valuesFile: ../../deploy/argocd/values/dev/location.yaml
+          - name: media
+            chartPath: k8s/charts/media
+            valuesFile: ../../deploy/argocd/values/dev/media.yaml
+          - name: order
+            chartPath: k8s/charts/order
+            valuesFile: ../../deploy/argocd/values/dev/order.yaml
+          - name: payment
+            chartPath: k8s/charts/payment
+            valuesFile: ../../deploy/argocd/values/dev/payment.yaml
+          - name: product
+            chartPath: k8s/charts/product
+            valuesFile: ../../deploy/argocd/values/dev/product.yaml
+          - name: promotion
+            chartPath: k8s/charts/promotion
+            valuesFile: ../../deploy/argocd/values/dev/promotion.yaml
+          - name: rating
+            chartPath: k8s/charts/rating
+            valuesFile: ../../deploy/argocd/values/dev/rating.yaml
+          - name: recommendation
+            chartPath: k8s/charts/recommendation
+            valuesFile: ../../deploy/argocd/values/dev/recommendation.yaml
+          - name: sampledata
+            chartPath: k8s/charts/sampledata
+            valuesFile: ../../deploy/argocd/values/dev/sampledata.yaml
+          - name: search
+            chartPath: k8s/charts/search
+            valuesFile: ../../deploy/argocd/values/dev/search.yaml
+          - name: storefront-ui
+            chartPath: k8s/charts/storefront-ui
+            valuesFile: ../../deploy/argocd/values/dev/storefront-ui.yaml
+          - name: storefront-bff
+            chartPath: k8s/charts/storefront-bff
+            valuesFile: ../../deploy/argocd/values/dev/storefront-bff.yaml
+          - name: tax
+            chartPath: k8s/charts/tax
+            valuesFile: ../../deploy/argocd/values/dev/tax.yaml
+          - name: webhook
+            chartPath: k8s/charts/webhook
+            valuesFile: ../../deploy/argocd/values/dev/webhook.yaml
+  template:
+    metadata:
+      name: yas-dev-{{name}}
+      labels:
+        app.kubernetes.io/part-of: yas
+        app.kubernetes.io/managed-by: argocd
+        env: dev
+    spec:
+      project: yas
+      source:
+        repoURL: https://github.com/hnaht277/yas-devops-k8s.git
+        targetRevision: main
+        path: "{{chartPath}}"
+        helm:
+          valueFiles:
+            - "{{valuesFile}}"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: dev
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
