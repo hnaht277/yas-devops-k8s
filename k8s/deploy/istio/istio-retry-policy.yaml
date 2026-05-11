@@ -41,7 +41,6 @@ spec:
       timeout: 20s
 
 ---
-
 # === order service ===
 apiVersion: networking.istio.io/v1
 kind: VirtualService
@@ -64,7 +63,6 @@ spec:
       timeout: 20s
 
 ---
-
 # === cart service ===
 apiVersion: networking.istio.io/v1
 kind: VirtualService
@@ -87,7 +85,6 @@ spec:
       timeout: 20s
 
 ---
-
 # === payment service ===
 apiVersion: networking.istio.io/v1
 kind: VirtualService
@@ -110,7 +107,6 @@ spec:
       timeout: 20s
 
 ---
-
 # === customer service ===
 apiVersion: networking.istio.io/v1
 kind: VirtualService
@@ -133,7 +129,6 @@ spec:
       timeout: 20s
 
 ---
-
 # === media service ===
 apiVersion: networking.istio.io/v1
 kind: VirtualService
@@ -156,7 +151,6 @@ spec:
       timeout: 20s
 
 ---
-
 # === inventory service ===
 apiVersion: networking.istio.io/v1
 kind: VirtualService
@@ -179,7 +173,6 @@ spec:
       timeout: 20s
 
 ---
-
 # === rating service ===
 apiVersion: networking.istio.io/v1
 kind: VirtualService
@@ -202,7 +195,6 @@ spec:
       timeout: 20s
 
 ---
-
 # === tax service ===
 apiVersion: networking.istio.io/v1
 kind: VirtualService
@@ -225,7 +217,6 @@ spec:
       timeout: 20s
 
 ---
-
 # === location service ===
 apiVersion: networking.istio.io/v1
 kind: VirtualService
@@ -248,7 +239,6 @@ spec:
       timeout: 20s
 
 ---
-
 # === promotion service ===
 apiVersion: networking.istio.io/v1
 kind: VirtualService

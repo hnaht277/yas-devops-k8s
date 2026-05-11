@@ -28,7 +28,6 @@ spec:
     mode: STRICT
 
 ---
-
 # --- DestinationRule: use ISTIO_MUTUAL TLS for all yas services ---
 # This ensures the Envoy sidecar presents its Istio-issued client certificate
 # when connecting to any service in the yas namespace.

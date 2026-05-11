@@ -196,14 +196,17 @@ echo ""
 echo "================================================================"
 echo " TEST 5: Cross-namespace block (default ns → yas)"
 echo "================================================================"
-HTTP_CODE=$(kubectl run curl-cross-ns-test \
+RAW_OUTPUT=$(kubectl run curl-cross-ns-test \
   --image=curlimages/curl:8.5.0 -n default \
   --rm -i --restart=Never --quiet \
   -- curl -s -o /dev/null -w "%{http_code}" --max-time 15 \
   http://product."$NS":80/ 2>/dev/null || echo "000")
 
+# Sanitize: extract only the last 3 digits (HTTP code), strip extra output
+HTTP_CODE=$(echo "$RAW_OUTPUT" | tr -dc '0-9' | grep -oE '[0-9]{3}$' || echo "000")
+
 log_info "default-ns → product response: HTTP $HTTP_CODE"
-if [ "$HTTP_CODE" = "000" ] || [ "$HTTP_CODE" = "403" ] || [ "$HTTP_CODE" = "56" ]; then
+if [ "$HTTP_CODE" = "000" ] || [ "$HTTP_CODE" = "403" ] || [ "$HTTP_CODE" = "056" ]; then
   log_pass "Cross-namespace access BLOCKED (HTTP $HTTP_CODE — mTLS STRICT prevents plaintext)"
 else
   log_fail "Cross-namespace: expected block, got $HTTP_CODE"
