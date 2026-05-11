@@ -10,28 +10,28 @@ read -rd '' DOMAIN \
 
 helm dependency build ../charts/backoffice-bff
 helm upgrade --install backoffice-bff ../charts/backoffice-bff \
---namespace yas-dev --create-namespace \
+--namespace yas --create-namespace \
 --set backend.ingress.host="backoffice.$DOMAIN"
 
 helm dependency build ../charts/backoffice-ui
 helm upgrade --install backoffice-ui ../charts/backoffice-ui \
---namespace yas-dev --create-namespace
+--namespace yas --create-namespace
 
 sleep 60
 
 helm dependency build ../charts/storefront-bff
 helm upgrade --install storefront-bff ../charts/storefront-bff \
---namespace yas-dev --create-namespace \
+--namespace yas --create-namespace \
 --set backend.ingress.host="storefront.$DOMAIN"
 
 helm dependency build ../charts/storefront-ui
 helm upgrade --install storefront-ui ../charts/storefront-ui \
---namespace yas-dev --create-namespace
+--namespace yas --create-namespace
 
 sleep 60
 
 helm upgrade --install swagger-ui ../charts/swagger-ui \
---namespace yas-dev --create-namespace \
+--namespace yas --create-namespace \
 --set ingress.host="api.$DOMAIN"
 
 sleep 20
@@ -39,7 +39,7 @@ sleep 20
 for chart in {"cart","customer","inventory","location","media","order","payment","product","promotion","rating","search","tax","recommendation","webhook","sampledata"} ; do
     helm dependency build ../charts/"$chart"
     helm upgrade --install "$chart" ../charts/"$chart" \
-    --namespace yas-dev --create-namespace \
+    --namespace yas --create-namespace \
     --set backend.ingress.host="api.$DOMAIN"
     sleep 60
 done
