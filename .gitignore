@@ -40,3 +40,6 @@ k8s/deploy/.env.*
 
 # Generated deploy artifacts
 k8s/deploy/developer-build-result.txt
+
+# Istio download directory (created by setup-istio.sh)
+k8s/deploy/istio-*/
