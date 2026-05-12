@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+
+# Set default values BEFORE set -u to avoid "unbound variable" error
+DEPLOY_YAS_CONFIGURATION="${DEPLOY_YAS_CONFIGURATION:-true}"
+
+# Now enable strict error handling
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -7,7 +12,6 @@ CONFIG_FILE="${CONFIG_FILE:-${SCRIPT_DIR}/developer-build-config.yaml}"
 CLUSTER_CONFIG_FILE="${CLUSTER_CONFIG_FILE:-${SCRIPT_DIR}/cluster-config.yaml}"
 CHARTS_DIR="${CHARTS_DIR:-${REPO_ROOT}/k8s/charts}"
 RESULT_FILE="${RESULT_FILE:-${SCRIPT_DIR}/developer-build-result.txt}"
-DEPLOY_YAS_CONFIGURATION="${DEPLOY_YAS_CONFIGURATION:-true}"
 
 for command_name in yq helm kubectl curl sed; do
   if ! command -v "${command_name}" >/dev/null 2>&1; then
