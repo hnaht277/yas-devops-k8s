@@ -124,10 +124,16 @@ helm upgrade --install promtail grafana/promtail \
 --create-namespace --namespace observability \
 --values ./observability/promtail.values.yaml
 
+#Create Grafana secrets for Prometheus chart
+kubectl create secret generic grafana-secrets \
+  --namespace observability \
+  --from-literal=GF_DATABASE_PASSWORD="$POSTGRESQL_PASSWORD" \
+  --from-literal=GF_ADMIN_PASSWORD="$GRAFANA_PASSWORD" \
+  --dry-run=client -o yaml | kubectl apply -f -
+
 #Install prometheus + grafana
 grafana_hostname="grafana.$DOMAIN" yq -i '.hostname=env(grafana_hostname)' ./observability/prometheus.values.yaml
 postgresql_username="$POSTGRESQL_USERNAME" yq -i '.grafana."grafana.ini".database.user=env(postgresql_username)' ./observability/prometheus.values.yaml
-postgresql_password="$POSTGRESQL_PASSWORD" yq -i '.grafana."grafana.ini".database.password=env(postgresql_password)' ./observability/prometheus.values.yaml
 helm upgrade --install prometheus prometheus-community/kube-prometheus-stack \
  --create-namespace --namespace observability \
 -f ./observability/prometheus.values.yaml \

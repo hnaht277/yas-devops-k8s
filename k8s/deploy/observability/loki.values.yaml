@@ -5,6 +5,7 @@ read:
 backend:
   replicas: 1
 loki:
+  useTestSchema: true
   commonConfig:
     replication_factor: 1
   auth_enabled: false
@@ -14,6 +15,11 @@ storage:
   type: 'filesystem'
 minio:
   enabled: true
+
+chunksCache:
+  enabled: false
+resultsCache:
+  enabled: false
 
 monitoring:
   selfMonitoring:

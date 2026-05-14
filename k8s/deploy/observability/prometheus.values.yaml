@@ -9,10 +9,11 @@ grafana:
       host: postgresql.postgres:5432
       name: grafana
       user: yasadminuser
-      password: admin
+      password: $__env{GF_DATABASE_PASSWORD}
       ssl_mode: require
   adminUser: admin
-  adminPassword: admin
+  adminPassword: $__env{GF_ADMIN_PASSWORD}
+  envFromSecret: grafana-secrets
   ingress:
     ingressClassName: nginx
     enabled: true

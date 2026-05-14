@@ -110,18 +110,52 @@ All charts of Yas application situated in `charts` folder
 To Install the Yas helm charts access to [https://nashtech-garage.github.io/yas/](https://nashtech-garage.github.io/yas/)
 
 ## Observability
-The Yas observability follow by the standard of Open Telemetry recommendation.
-Promtail collect the log from all applications send to Open Telemetry Collector after that, Open Telemetry Collector distribute to Loki server.
-The Yas applications also send the metric data to Open Telemetry Collector, Open Telemetry collector send the metric data to Tempo server
+The Yas observability follows the OpenTelemetry standard recommendation.
 
-View details configuration of Open Telemetry Collector at [opentelemetry](./observability/opentelemetry/values.yaml)
+### Architecture
+- **Logs**: Promtail collects logs from all applications and sends them directly to Loki
+- **Traces**: Applications send trace data to OpenTelemetry Collector, which forwards to Tempo
+- **Metrics**: Prometheus scrapes metrics from applications and exporters
+- **Visualization**: Grafana provides unified dashboards for logs, traces, and metrics
 
-### How to view log on the Grafana
-On the left menu select `Expore` -> select `Loki` datasource -> select Label filters:
-- namespace
-- container (Application)
+### Components
+- **Loki**: Log aggregation system
+- **Tempo**: Distributed tracing backend
+- **Prometheus**: Metrics collection and storage (part of kube-prometheus-stack)
+- **Grafana**: Visualization and dashboarding UI
+- **Promtail**: Log shipping agent (DaemonSet on each node)
+- **OpenTelemetry Collector**: Trace collection and forwarding
 
-On the Loki also support track by traceId, on The Tempo you can select the Node graph to view the tracing of request 
+View detailed configuration:
+- OpenTelemetry Collector: [opentelemetry/values.yaml](./observability/opentelemetry/values.yaml)
+- Prometheus + Grafana: [prometheus.values.yaml](./observability/prometheus.values.yaml)
+- Loki: [loki.values.yaml](./observability/loki.values.yaml)
+- Promtail: [promtail.values.yaml](./observability/promtail.values.yaml)
+
+### Setup
+The observability stack is automatically deployed by [setup-cluster.sh](setup-cluster.sh). No manual steps required.
+
+**Note**: Grafana passwords are managed via Kubernetes Secret and sourced from [cluster-config.yaml](cluster-config.yaml). The setup script automatically creates the `grafana-secrets` Secret in the `observability` namespace.
+
+### How to view logs in Grafana
+1. Access Grafana at `http://grafana.yas.local.com` (after setting up hosts file)
+2. On the left menu select `Explore` → select `Loki` datasource
+3. Select Label filters:
+   - `namespace`: filter by Kubernetes namespace
+   - `container`: filter by application/container name
+4. Loki supports trace correlation - click on a traceId to jump to Tempo
+
+### How to view traces in Grafana
+1. In Grafana, select `Explore` → select `Tempo` datasource
+2. Search by traceId or use the Node Graph to visualize request flows
+3. Click on spans to see detailed timing and logs
+
+### How to view metrics in Grafana
+1. In Grafana, go to `Dashboards`
+2. Pre-configured dashboards are available for:
+   - JVM metrics (Hikari CP, JVM memory, threads)
+   - Kubernetes cluster metrics
+   - Node exporter metrics 
 
 ## Service Mesh (Istio + Kiali)
 Setup Istio service mesh with mTLS, authorization policies, retry policies, and Kiali visualization.
