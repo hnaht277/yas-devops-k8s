@@ -5,6 +5,11 @@
 # connection failures, or resets. This improves resilience for
 # transient failures without application code changes.
 #
+# Active services: product, cart, order, customer, inventory, tax, media,
+#                  search, storefront-bff, backoffice-bff
+#
+# Disabled services (not deployed): payment, rating, location, promotion
+#
 # Policy details:
 #   - attempts: 3         (retry up to 3 times)
 #   - perTryTimeout: 5s   (each attempt times out after 5 seconds)
@@ -85,28 +90,6 @@ spec:
       timeout: 20s
 
 ---
-# === payment service ===
-apiVersion: networking.istio.io/v1
-kind: VirtualService
-metadata:
-  name: payment-vs
-  namespace: yas
-spec:
-  hosts:
-    - payment
-  http:
-    - route:
-        - destination:
-            host: payment
-            port:
-              number: 80
-      retries:
-        attempts: 3
-        perTryTimeout: 5s
-        retryOn: 5xx,reset,connect-failure
-      timeout: 20s
-
----
 # === customer service ===
 apiVersion: networking.istio.io/v1
 kind: VirtualService
@@ -173,28 +156,6 @@ spec:
       timeout: 20s
 
 ---
-# === rating service ===
-apiVersion: networking.istio.io/v1
-kind: VirtualService
-metadata:
-  name: rating-vs
-  namespace: yas
-spec:
-  hosts:
-    - rating
-  http:
-    - route:
-        - destination:
-            host: rating
-            port:
-              number: 80
-      retries:
-        attempts: 3
-        perTryTimeout: 5s
-        retryOn: 5xx,reset,connect-failure
-      timeout: 20s
-
----
 # === tax service ===
 apiVersion: networking.istio.io/v1
 kind: VirtualService
@@ -217,19 +178,19 @@ spec:
       timeout: 20s
 
 ---
-# === location service ===
+# === search service ===
 apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
-  name: location-vs
+  name: search-vs
   namespace: yas
 spec:
   hosts:
-    - location
+    - search
   http:
     - route:
         - destination:
-            host: location
+            host: search
             port:
               number: 80
       retries:
@@ -239,19 +200,41 @@ spec:
       timeout: 20s
 
 ---
-# === promotion service ===
+# === storefront-bff service ===
 apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
-  name: promotion-vs
+  name: storefront-bff-vs
   namespace: yas
 spec:
   hosts:
-    - promotion
+    - storefront-bff
   http:
     - route:
         - destination:
-            host: promotion
+            host: storefront-bff
+            port:
+              number: 80
+      retries:
+        attempts: 3
+        perTryTimeout: 5s
+        retryOn: 5xx,reset,connect-failure
+      timeout: 20s
+
+---
+# === backoffice-bff service ===
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: backoffice-bff-vs
+  namespace: yas
+spec:
+  hosts:
+    - backoffice-bff
+  http:
+    - route:
+        - destination:
+            host: backoffice-bff
             port:
               number: 80
       retries:

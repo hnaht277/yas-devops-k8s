@@ -2,6 +2,14 @@
 # istio-authz-policy.yaml — Authorization policies for YAS microservices
 #
 # Strategy: deny-all default, then whitelist allowed callers per service.
+#
+# Active services: product, cart, order, customer, inventory, tax, media,
+#                  search, storefront-bff, storefront-ui, backoffice-bff,
+#                  backoffice-ui, swagger-ui
+#
+# Disabled services (not deployed): payment, rating, location, promotion,
+#                                    sampledata
+#
 # Apply:  kubectl apply -f istio-authz-policy.yaml
 # Verify: kubectl get authorizationpolicy -n yas
 ###############################################################################
@@ -15,7 +23,7 @@ metadata:
 spec: {}
 
 ---
-# product: cart, order, rating, inventory, promotion, storefront-bff, backoffice-bff
+# product: cart, order, inventory, storefront-bff, backoffice-bff
 apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
 metadata:
@@ -32,15 +40,12 @@ spec:
             principals:
               - "cluster.local/ns/yas/sa/cart"
               - "cluster.local/ns/yas/sa/order"
-              - "cluster.local/ns/yas/sa/rating"
               - "cluster.local/ns/yas/sa/inventory"
-              - "cluster.local/ns/yas/sa/promotion"
               - "cluster.local/ns/yas/sa/storefront-bff"
               - "cluster.local/ns/yas/sa/backoffice-bff"
-              - "cluster.local/ns/yas/sa/sampledata"
 
 ---
-# media: cart, payment, storefront-bff, backoffice-bff
+# media: cart, storefront-bff, backoffice-bff
 apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
 metadata:
@@ -56,10 +61,8 @@ spec:
         - source:
             principals:
               - "cluster.local/ns/yas/sa/cart"
-              - "cluster.local/ns/yas/sa/payment"
               - "cluster.local/ns/yas/sa/storefront-bff"
               - "cluster.local/ns/yas/sa/backoffice-bff"
-              - "cluster.local/ns/yas/sa/sampledata"
 
 ---
 # cart: order, storefront-bff
@@ -81,7 +84,7 @@ spec:
               - "cluster.local/ns/yas/sa/storefront-bff"
 
 ---
-# customer: rating, order, storefront-bff, backoffice-bff
+# customer: order, storefront-bff, backoffice-bff
 apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
 metadata:
@@ -96,13 +99,12 @@ spec:
     - from:
         - source:
             principals:
-              - "cluster.local/ns/yas/sa/rating"
               - "cluster.local/ns/yas/sa/order"
               - "cluster.local/ns/yas/sa/storefront-bff"
               - "cluster.local/ns/yas/sa/backoffice-bff"
 
 ---
-# order: payment, rating, storefront-bff, backoffice-bff
+# order: storefront-bff, backoffice-bff
 apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
 metadata:
@@ -117,67 +119,6 @@ spec:
     - from:
         - source:
             principals:
-              - "cluster.local/ns/yas/sa/payment"
-              - "cluster.local/ns/yas/sa/rating"
-              - "cluster.local/ns/yas/sa/storefront-bff"
-              - "cluster.local/ns/yas/sa/backoffice-bff"
-
----
-# payment: storefront-bff ONLY
-apiVersion: security.istio.io/v1
-kind: AuthorizationPolicy
-metadata:
-  name: allow-payment-access
-  namespace: yas
-spec:
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: payment
-  action: ALLOW
-  rules:
-    - from:
-        - source:
-            principals:
-              - "cluster.local/ns/yas/sa/storefront-bff"
-
----
-# rating: storefront-bff, backoffice-bff
-apiVersion: security.istio.io/v1
-kind: AuthorizationPolicy
-metadata:
-  name: allow-rating-access
-  namespace: yas
-spec:
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: rating
-  action: ALLOW
-  rules:
-    - from:
-        - source:
-            principals:
-              - "cluster.local/ns/yas/sa/storefront-bff"
-              - "cluster.local/ns/yas/sa/backoffice-bff"
-
----
-# location: customer, inventory, tax, storefront-bff, backoffice-bff
-apiVersion: security.istio.io/v1
-kind: AuthorizationPolicy
-metadata:
-  name: allow-location-access
-  namespace: yas
-spec:
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: location
-  action: ALLOW
-  rules:
-    - from:
-        - source:
-            principals:
-              - "cluster.local/ns/yas/sa/customer"
-              - "cluster.local/ns/yas/sa/inventory"
-              - "cluster.local/ns/yas/sa/tax"
               - "cluster.local/ns/yas/sa/storefront-bff"
               - "cluster.local/ns/yas/sa/backoffice-bff"
 
@@ -221,16 +162,16 @@ spec:
               - "cluster.local/ns/yas/sa/backoffice-bff"
 
 ---
-# promotion: storefront-bff, backoffice-bff
+# search: storefront-bff, backoffice-bff
 apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
 metadata:
-  name: allow-promotion-access
+  name: allow-search-access
   namespace: yas
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: promotion
+      app.kubernetes.io/name: search
   action: ALLOW
   rules:
     - from:
@@ -267,6 +208,57 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/name: backoffice-bff
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            namespaces: ["istio-system", "yas"]
+
+---
+# storefront-ui: ingress gateway (serves frontend assets)
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-storefront-ui-access
+  namespace: yas
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: storefront-ui
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            namespaces: ["istio-system", "yas"]
+
+---
+# backoffice-ui: ingress gateway (serves frontend assets)
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-backoffice-ui-access
+  namespace: yas
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: backoffice-ui
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            namespaces: ["istio-system", "yas"]
+
+---
+# swagger-ui: ingress gateway + internal (API documentation)
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-swagger-ui-access
+  namespace: yas
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: swagger-ui
   action: ALLOW
   rules:
     - from:

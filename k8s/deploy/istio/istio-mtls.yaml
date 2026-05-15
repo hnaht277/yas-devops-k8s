@@ -41,3 +41,55 @@ spec:
   trafficPolicy:
     tls:
       mode: ISTIO_MUTUAL
+
+---
+# --- DestinationRules: DISABLE mTLS for external services (no sidecar) ---
+# PostgreSQL, Kafka, Elasticsearch, Keycloak run outside the mesh.
+# Without these rules, mTLS STRICT causes "Connection reset" to these services.
+
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: postgres-no-mtls
+  namespace: yas
+spec:
+  host: "*.postgres.svc.cluster.local"
+  trafficPolicy:
+    tls:
+      mode: DISABLE
+
+---
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: kafka-no-mtls
+  namespace: yas
+spec:
+  host: "*.kafka.svc.cluster.local"
+  trafficPolicy:
+    tls:
+      mode: DISABLE
+
+---
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: elasticsearch-no-mtls
+  namespace: yas
+spec:
+  host: "*.elasticsearch.svc.cluster.local"
+  trafficPolicy:
+    tls:
+      mode: DISABLE
+
+---
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: keycloak-no-mtls
+  namespace: yas
+spec:
+  host: "*.keycloak.svc.cluster.local"
+  trafficPolicy:
+    tls:
+      mode: DISABLE

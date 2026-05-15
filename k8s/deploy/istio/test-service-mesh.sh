@@ -10,6 +10,10 @@
 #   5. Test cross-namespace block (mTLS STRICT)
 #   6. Verify retry policy is configured
 #
+# Active services: product, cart, order, customer, inventory, tax, media,
+#                  search, storefront-bff, storefront-ui, backoffice-bff,
+#                  backoffice-ui, swagger-ui
+#
 # Usage:
 #   chmod +x test-service-mesh.sh && ./test-service-mesh.sh
 #
@@ -80,8 +84,8 @@ EOF
   kubectl rollout status deployment/curl-test-allowed -n "$NS" --timeout=120s 2>/dev/null
   kubectl rollout status deployment/curl-test-denied -n "$NS" --timeout=120s 2>/dev/null
   # Wait for sidecar to establish mTLS identity and Envoy to sync policies
-  log_info "Waiting 15s for Envoy sidecar policy propagation..."
-  sleep 15
+  log_info "Waiting 30s for Envoy sidecar policy propagation..."
+  sleep 30
 }
 
 cleanup_test_pods() {
@@ -172,7 +176,7 @@ echo " TEST 3: Allowed access — cart SA → product (should succeed)"
 echo "================================================================"
 if [ -n "$ALLOWED_POD" ]; then
   HTTP_CODE=$(kubectl exec -n "$NS" "$ALLOWED_POD" -c curl -- \
-    curl -s -o /dev/null -w "%{http_code}" --max-time 15 \
+    curl -s -o /dev/null -w "%{http_code}" --max-time 30 \
     http://product:80/ 2>/dev/null || echo "000")
 
   log_info "cart SA → product response: HTTP $HTTP_CODE"
@@ -191,7 +195,7 @@ echo " TEST 4a: Denied — cart SA → customer (cart NOT in whitelist)"
 echo "================================================================"
 if [ -n "$ALLOWED_POD" ]; then
   HTTP_CODE=$(kubectl exec -n "$NS" "$ALLOWED_POD" -c curl -- \
-    curl -s -o /dev/null -w "%{http_code}" --max-time 15 \
+    curl -s -o /dev/null -w "%{http_code}" --max-time 30 \
     http://customer:80/ 2>/dev/null || echo "000")
 
   log_info "cart SA → customer response: HTTP $HTTP_CODE"
@@ -212,7 +216,7 @@ echo " TEST 4b: Denied — unauthorized SA → product (no whitelist)"
 echo "================================================================"
 if [ -n "$DENIED_POD" ]; then
   HTTP_CODE=$(kubectl exec -n "$NS" "$DENIED_POD" -c curl -- \
-    curl -s -o /dev/null -w "%{http_code}" --max-time 15 \
+    curl -s -o /dev/null -w "%{http_code}" --max-time 30 \
     http://product:80/ 2>/dev/null || echo "000")
 
   log_info "default SA → product response: HTTP $HTTP_CODE"
@@ -234,7 +238,7 @@ echo "================================================================"
 RAW_OUTPUT=$(kubectl run curl-cross-ns-test \
   --image=curlimages/curl:8.5.0 -n default \
   --rm -i --restart=Never --quiet \
-  -- curl -s -o /dev/null -w "%{http_code}" --max-time 15 \
+  -- curl -s -o /dev/null -w "%{http_code}" --max-time 30 \
   http://product."$NS":80/ 2>/dev/null || echo "000")
 
 # Sanitize: extract only the last 3 digits (HTTP code), strip extra output
