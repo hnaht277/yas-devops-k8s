@@ -49,13 +49,13 @@ services:
     tagParam: INVENTORY_TAG
     defaultBranch: main
 
-  - name: location
-    chart: location
-    release: location
-    valuesKey: backend
-    branchParam: LOCATION_BRANCH
-    tagParam: LOCATION_TAG
-    defaultBranch: main
+  # - name: location
+  #   chart: location
+  #   release: location
+  #   valuesKey: backend
+  #   branchParam: LOCATION_BRANCH
+  #   tagParam: LOCATION_TAG
+  #   defaultBranch: main
 
   - name: media
     chart: media
@@ -73,13 +73,13 @@ services:
     tagParam: ORDER_TAG
     defaultBranch: main
 
-  - name: payment
-    chart: payment
-    release: payment
-    valuesKey: backend
-    branchParam: PAYMENT_BRANCH
-    tagParam: PAYMENT_TAG
-    defaultBranch: main
+  # - name: payment
+  #   chart: payment
+  #   release: payment
+  #   valuesKey: backend
+  #   branchParam: PAYMENT_BRANCH
+  #   tagParam: PAYMENT_TAG
+  #   defaultBranch: main
 
   # - name: payment-paypal
   #   chart: payment-paypal
@@ -97,37 +97,37 @@ services:
     tagParam: PRODUCT_TAG
     defaultBranch: main
 
-  - name: promotion
-    chart: promotion
-    release: promotion
-    valuesKey: backend
-    branchParam: PROMOTION_BRANCH
-    tagParam: PROMOTION_TAG
-    defaultBranch: main
+  # - name: promotion
+  #   chart: promotion
+  #   release: promotion
+  #   valuesKey: backend
+  #   branchParam: PROMOTION_BRANCH
+  #   tagParam: PROMOTION_TAG
+  #   defaultBranch: main
 
-  - name: rating
-    chart: rating
-    release: rating
-    valuesKey: backend
-    branchParam: RATING_BRANCH
-    tagParam: RATING_TAG
-    defaultBranch: main
+  # - name: rating
+  #   chart: rating
+  #   release: rating
+  #   valuesKey: backend
+  #   branchParam: RATING_BRANCH
+  #   tagParam: RATING_TAG
+  #   defaultBranch: main
 
-  - name: recommendation
-    chart: recommendation
-    release: recommendation
-    valuesKey: backend
-    branchParam: RECOMMENDATION_BRANCH
-    tagParam: RECOMMENDATION_TAG
-    defaultBranch: main
+  # - name: recommendation
+  #   chart: recommendation
+  #   release: recommendation
+  #   valuesKey: backend
+  #   branchParam: RECOMMENDATION_BRANCH
+  #   tagParam: RECOMMENDATION_TAG
+  #   defaultBranch: main
 
-  - name: sampledata
-    chart: sampledata
-    release: sampledata
-    valuesKey: backend
-    branchParam: SAMPLEDATA_BRANCH
-    tagParam: SAMPLEDATA_TAG
-    defaultBranch: main
+  # - name: sampledata
+  #   chart: sampledata
+  #   release: sampledata
+  #   valuesKey: backend
+  #   branchParam: SAMPLEDATA_BRANCH
+  #   tagParam: SAMPLEDATA_TAG
+  #   defaultBranch: main
 
   - name: search
     chart: search
@@ -161,10 +161,10 @@ services:
     tagParam: TAX_TAG
     defaultBranch: main
 
-  - name: webhook
-    chart: webhook
-    release: webhook
-    valuesKey: backend
-    branchParam: WEBHOOK_BRANCH
-    tagParam: WEBHOOK_TAG
-    defaultBranch: main
+  # - name: webhook
+  #   chart: webhook
+  #   release: webhook
+  #   valuesKey: backend
+  #   branchParam: WEBHOOK_BRANCH
+  #   tagParam: WEBHOOK_TAG
+  #   defaultBranch: main
