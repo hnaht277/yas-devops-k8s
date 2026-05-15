@@ -2,6 +2,9 @@
 
 Hướng dẫn triển khai Istio Service Mesh với mTLS, Kiali visualization, retry policy và authorization policy cho ứng dụng YAS trên Kubernetes.
 
+> **Lưu ý:** Cấu hình mặc định sử dụng namespace `yas` — tương thích với `deploy-yas-applications.sh`.
+> Nếu dùng ArgoCD (namespace `dev`), set biến môi trường: `export YAS_NAMESPACE=dev` trước khi chạy.
+
 ## Mục lục
 
 1. [Tổng quan](#tổng-quan)
@@ -18,23 +21,26 @@ Hướng dẫn triển khai Istio Service Mesh với mTLS, Kiali visualization, 
 
 ## Tổng quan
 
-### Service Dependency Map
+### Active Services
+
+> **13 services được deploy:** product, cart, order, customer, inventory, tax,
+> media, search, storefront-bff, storefront-ui, backoffice-bff, backoffice-ui, swagger-ui
+>
+> **Services tắt (không deploy):** payment, rating, location, promotion, sampledata
+
+### Service Dependency Map (Active Services)
 
 ```
-storefront-bff ──→ cart, customer, rating, order, location,
-                    inventory, tax, promotion, payment, product, media
+storefront-bff ──→ cart, customer, order, inventory, tax, product, media, search
 
-backoffice-bff ──→ product, media, customer, order, location,
-                    inventory, tax, promotion
+backoffice-bff ──→ product, media, customer, order, inventory, tax, search
 
 cart       → product, media
-rating     → product, customer, order
 order      → cart, customer, product, tax
-payment    → order, media
-inventory  → product, location
-promotion  → product
-tax        → location
-customer   → location
+inventory  → product
+customer   → (standalone)
+tax        → (standalone)
+search     → (standalone)
 ```
 
 ### Các thành phần Istio được sử dụng
@@ -53,7 +59,7 @@ customer   → location
 - Kubernetes cluster (Minikube ≥16GB RAM)
 - `kubectl` configured
 - `helm` installed
-- Namespace `yas` với các services đã deploy
+- YAS services đã deploy (qua `deploy-yas-applications.sh` hoặc ArgoCD)
 - `curl` (để test)
 
 ---
@@ -148,20 +154,21 @@ kubectl apply -f istio/istio-authz-policy.yaml
 1. **deny-all-default**: Chặn TẤT CẢ traffic mặc định
 2. **Per-service ALLOW**: Chỉ cho phép caller đã được whitelist
 
-### Ví dụ policy cho `payment` service:
+### Ví dụ policy cho `search` service:
 
 ```yaml
-# CHỈ storefront-bff được phép gọi payment
+# CHỈ storefront-bff và backoffice-bff được phép gọi search
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: payment
+      app.kubernetes.io/name: search
   action: ALLOW
   rules:
     - from:
         - source:
             principals:
               - "cluster.local/ns/yas/sa/storefront-bff"
+              - "cluster.local/ns/yas/sa/backoffice-bff"
 ```
 
 > **Lưu ý:** Service account name phải khớp với SA thực tế.
@@ -183,7 +190,7 @@ chmod +x istio/test-service-mesh.sh
 | 1 | Sidecar injection | `kubectl get pods -n yas` | 2/2 READY |
 | 2 | mTLS STRICT | `istioctl x describe pod <pod> -n yas` | STRICT |
 | 3 | Allowed: cart→product | `kubectl exec -n yas <cart-pod> -c cart -- curl http://product:80/product/actuator/health` | HTTP 200 |
-| 4 | Denied: temp→payment | `kubectl run test --image=curlimages/curl -n yas --rm -it -- curl http://payment:80/payment/actuator/health` | HTTP 403 |
+| 4 | Denied: temp→product | `kubectl run test --image=curlimages/curl -n yas --rm -it -- curl http://product:80/product/actuator/health` | HTTP 403 |
 | 5 | Cross-ns block | `kubectl run test --image=curlimages/curl -n default --rm -it -- curl http://product.yas:80/product/actuator/health` | Timeout/403 |
 | 6 | Retry policies | `kubectl get virtualservice -n yas` | ≥3 VirtualService |
 
@@ -215,6 +222,8 @@ kubectl get namespace yas --show-labels
 
 # Force restart
 kubectl rollout restart deployment -n yas
+
+# Nếu dùng ArgoCD: ArgoCD sẽ tự re-sync, pod mới sẽ có sidecar
 ```
 
 ### mTLS errors
