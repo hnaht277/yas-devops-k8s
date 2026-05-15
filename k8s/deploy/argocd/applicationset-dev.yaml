@@ -22,36 +22,21 @@ spec:
           - name: inventory
             chartPath: k8s/charts/inventory
             valuesFile: ../../deploy/argocd/values/dev/inventory.yaml
-          - name: location
-            chartPath: k8s/charts/location
-            valuesFile: ../../deploy/argocd/values/dev/location.yaml
           - name: media
             chartPath: k8s/charts/media
             valuesFile: ../../deploy/argocd/values/dev/media.yaml
           - name: order
             chartPath: k8s/charts/order
             valuesFile: ../../deploy/argocd/values/dev/order.yaml
-          - name: payment
-            chartPath: k8s/charts/payment
-            valuesFile: ../../deploy/argocd/values/dev/payment.yaml
           - name: product
             chartPath: k8s/charts/product
             valuesFile: ../../deploy/argocd/values/dev/product.yaml
-          - name: promotion
-            chartPath: k8s/charts/promotion
-            valuesFile: ../../deploy/argocd/values/dev/promotion.yaml
-          - name: rating
-            chartPath: k8s/charts/rating
-            valuesFile: ../../deploy/argocd/values/dev/rating.yaml
-          - name: recommendation
-            chartPath: k8s/charts/recommendation
-            valuesFile: ../../deploy/argocd/values/dev/recommendation.yaml
-          - name: sampledata
-            chartPath: k8s/charts/sampledata
-            valuesFile: ../../deploy/argocd/values/dev/sampledata.yaml
           - name: search
             chartPath: k8s/charts/search
             valuesFile: ../../deploy/argocd/values/dev/search.yaml
+          - name: swagger-ui
+            chartPath: k8s/charts/swagger-ui
+            valuesFile: ../../deploy/argocd/values/dev/swagger-ui.yaml
           - name: storefront-ui
             chartPath: k8s/charts/storefront-ui
             valuesFile: ../../deploy/argocd/values/dev/storefront-ui.yaml
@@ -61,9 +46,6 @@ spec:
           - name: tax
             chartPath: k8s/charts/tax
             valuesFile: ../../deploy/argocd/values/dev/tax.yaml
-          - name: webhook
-            chartPath: k8s/charts/webhook
-            valuesFile: ../../deploy/argocd/values/dev/webhook.yaml
   template:
     metadata:
       name: yas-dev-{{name}}
