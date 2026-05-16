@@ -58,8 +58,8 @@ applicationConfig:
       oauth2:
         resourceserver:
           jwt:
-            # issuer-uri: http://identity.yas.local.com/realms/Yas
-            issuer-uri: http://keycloak-service.keycloak.svc.cluster.local/realms/Yas
+            issuer-uri: http://identity.yas.local.com/realms/Yas
+            # issuer-uri: http://keycloak-service.keycloak.svc.cluster.local/realms/Yas
 
     datasource:
       url:
@@ -72,10 +72,10 @@ applicationConfig:
 
   springdoc:
     oauthflow:
-      # authorization-url: http://identity.yas.local.com/realms/Yas/protocol/openid-connect/auth
-      authorization-url: http://keycloak-service.keycloak.svc.cluster.local/realms/Yas/protocol/openid-connect/auth
-      # token-url: http://identity.yas.local.com/realms/Yas/protocol/openid-connect/token
-      token-url: http://keycloak-service.keycloak.svc.cluster.local/realms/Yas/protocol/openid-connect/token
+      authorization-url: http://identity.yas.local.com/realms/Yas/protocol/openid-connect/auth
+      # authorization-url: http://keycloak-service.keycloak.svc.cluster.local/realms/Yas/protocol/openid-connect/auth
+      token-url: http://identity.yas.local.com/realms/Yas/protocol/openid-connect/token
+      # token-url: http://keycloak-service.keycloak.svc.cluster.local/realms/Yas/protocol/openid-connect/token
 
   yas:
     services:
@@ -216,8 +216,8 @@ backofficeBffExtraConfig:
         client:
           provider:
             keycloak:
-              # issuer-uri: http://identity.yas.local.com/realms/Yas
-              issuer-uri: http://keycloak-service.keycloak.svc.cluster.local/realms/Yas
+              issuer-uri: http://identity.yas.local.com/realms/Yas
+              # issuer-uri: http://keycloak-service.keycloak.svc.cluster.local/realms/Yas
           registration:
             api-client:
               provider: keycloak
@@ -237,8 +237,8 @@ storefrontBffExtraConfig:
         client:
           provider:
             keycloak:
-              # issuer-uri: http://identity.yas.local.com/realms/Yas
-              issuer-uri: http://keycloak-service.keycloak.svc.cluster.local/realms/Yas
+              issuer-uri: http://identity.yas.local.com/realms/Yas
+              # issuer-uri: http://keycloak-service.keycloak.svc.cluster.local/realms/Yas
           registration:
             api-client:
               provider: keycloak
@@ -257,8 +257,8 @@ mediaApplicationConfig:
 # Customer application config custom
 customerApplicationConfig:
   keycloak:
-    # auth-server-url: http://identity.yas.local.com
-    auth-server-url: http://keycloak-service.keycloak.svc.cluster.local
+    auth-server-url: http://identity.yas.local.com
+    # auth-server-url: http://keycloak-service.keycloak.svc.cluster.local
     realm: Yas
     resource: customer-management
     credentials:

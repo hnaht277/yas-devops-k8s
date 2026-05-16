@@ -16,8 +16,8 @@ elasticsearch:
   username: yas
   password: LarUmB3A49NTg9YmgW4=
 keycloak:
-  # hostname: identity.yas.local.com
-  hostname: keycloak-service.keycloak.svc.cluster.local
+  hostname: identity.yas.local.com
+  # hostname: keycloak-service.keycloak.svc.cluster.local
   bootstrapAdmin:
     username: admin
     password: admin
