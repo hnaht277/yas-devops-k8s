@@ -25,11 +25,7 @@ kubectl -n "${ARGOCD_NAMESPACE}" wait deploy/argocd-repo-server --for=condition=
 kubectl -n "${ARGOCD_NAMESPACE}" rollout status statefulset/argocd-application-controller --timeout=300s
 kubectl -n "${ARGOCD_NAMESPACE}" wait deploy/argocd-applicationset-controller --for=condition=Available --timeout=300s
 
-kubectl apply -f ./argocd/app-project.yaml
-kubectl apply -f ./argocd/applicationset-dev.yaml
-kubectl apply -f ./argocd/applicationset-staging.yaml
-kubectl apply -f ./argocd/yas-configuration-dev.yaml
-kubectl apply -f ./argocd/yas-configuration-staging.yaml
+
 
 echo "Argo CD installed and GitOps applications applied."
 echo "Login (local): kubectl -n ${ARGOCD_NAMESPACE} port-forward svc/argocd-server 8081:443"
