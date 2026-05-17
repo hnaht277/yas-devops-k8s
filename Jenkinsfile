@@ -410,7 +410,10 @@ REMOTE_URL="\$(git config --get remote.origin.url)"
 if [[ "\${REMOTE_URL}" == git@* ]]; then
   REMOTE_URL="https://github.com/\${REMOTE_URL#git@github.com:}"
 fi
-PUSH_URL="https://${GIT_USER}:${GIT_TOKEN}@\${REMOTE_URL#https://}"
+PUSH_URL="https://\${GIT_USER}:\${GIT_TOKEN}@\${REMOTE_URL#https://}"
+
+git fetch origin "${targetBranch}" || true
+git rebase "origin/${targetBranch}"
 
 git push "\${PUSH_URL}" HEAD:"${targetBranch}"
 """
