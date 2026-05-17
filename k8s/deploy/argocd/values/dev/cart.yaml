@@ -1,4 +1,4 @@
 backend:
   image:
     repository: docker.io/hnaht277/yas-cart
-    tag: main
+    tag: c7b884c4e283
