@@ -86,6 +86,22 @@ pipeline {
           echo "DEBUG raw serviceListOutput: '${serviceListOutput}'"
 
           def services = serviceListOutput.split('\n') as List
+          def essentialServices = [
+            'product',
+            'cart',
+            'order',
+            'customer',
+            'inventory',
+            'tax',
+            'media',
+            'search',
+            'storefront-bff',
+            'storefront',
+            'backoffice-bff',
+            'backoffice'
+          ] as Set
+
+          services = services.findAll { essentialServices.contains(it) }
           echo "Detected services: ${services.join(', ')}"
 
           def baseCommit = env.GIT_PREVIOUS_SUCCESSFUL_COMMIT?.trim()
