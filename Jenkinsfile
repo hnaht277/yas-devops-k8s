@@ -374,6 +374,9 @@ else
   git checkout -B "${targetBranch}"
 fi
 
+git fetch origin "${targetBranch}"
+git reset --hard "origin/${targetBranch}"
+
 CONFIG_FILE="k8s/deploy/developer-build-config.yaml"
 VALUES_DIR="k8s/deploy/argocd/values/${targetEnv}"
 
@@ -405,6 +408,10 @@ fi
 
 git add "\${VALUES_DIR}"
 git commit -m "chore(argocd): update ${targetEnv} image tags to ${imageTag}"
+
+git pull --rebase origin "${targetBranch}" || true
+
+git push "${PUSH_URL}" HEAD:"${targetBranch}"
 
 REMOTE_URL="\$(git config --get remote.origin.url)"
 if [[ "\${REMOTE_URL}" == git@* ]]; then
