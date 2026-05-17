@@ -1,4 +1,4 @@
 backend:
   image:
     repository: docker.io/hnaht277/yas-backoffice-bff
-    tag: main
+    tag: v1.2.4

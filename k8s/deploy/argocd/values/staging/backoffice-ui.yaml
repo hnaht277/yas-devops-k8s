@@ -1,4 +1,4 @@
 ui:
   image:
     repository: docker.io/hnaht277/yas-backoffice
-    tag: main
+    tag: v1.2.4

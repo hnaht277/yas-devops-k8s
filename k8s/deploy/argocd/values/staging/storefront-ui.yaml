@@ -1,4 +1,4 @@
 ui:
   image:
     repository: docker.io/hnaht277/yas-storefront
-    tag: main
+    tag: v1.2.4
