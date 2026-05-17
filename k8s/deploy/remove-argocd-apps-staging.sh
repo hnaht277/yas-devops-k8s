@@ -14,5 +14,6 @@ done
 
 kubectl delete -f ./argocd/applicationset-staging.yaml --ignore-not-found
 kubectl delete -f ./argocd/yas-configuration-staging.yaml --ignore-not-found
+kubectl delete -f ./argocd/app-project.yaml --ignore-not-found
 
 echo "Argo CD staging applications removed."
